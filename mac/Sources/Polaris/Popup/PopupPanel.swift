@@ -19,7 +19,7 @@ final class Popup {
 
     private let panel: FloatingPanel
     private let background: NSVisualEffectView
-    private let menu: NSStackView
+    private let menu = NSView()
     private let scroll: NSScrollView
     private let textView: NSTextView
     private let controls = ReaderControls(frame: .zero)
@@ -52,18 +52,13 @@ final class Popup {
         effect.wantsLayer = true
         effect.layer?.cornerRadius = 12
         effect.layer?.masksToBounds = true
-        effect.autoresizingMask = [.width, .height]
         background = effect
-
-        menu = NSStackView()
-        menu.distribution = .fillEqually
-        menu.spacing = circleSpacing
-        menu.autoresizingMask = [.width, .height]
 
         scroll = NSScrollView(frame: rect)
         scroll.hasVerticalScroller = true
         scroll.drawsBackground = false
-        scroll.autoresizingMask = [.width, .height]
+        // Subview frames are set by hand in layoutContent/place, so nothing resizes them behind our back.
+        scroll.autoresizingMask = []
 
         textView = NSTextView(frame: scroll.contentView.bounds)
         textView.isEditable = false
@@ -78,7 +73,7 @@ final class Popup {
         textView.textContainer?.widthTracksTextView = true
         scroll.documentView = textView
 
-        controls.autoresizingMask = [.width, .maxYMargin]
+        controls.autoresizingMask = []
 
         // The rounded background only shows behind text; the menu is just three floating circles.
         let container = NSView(frame: rect)
@@ -95,10 +90,12 @@ final class Popup {
             ("Explain", "text.bubble", .explain),
             ("Simplify", "wand.and.stars", .simplify),
         ]
-        for (title, symbol, action) in buttons {
-            menu.addArrangedSubview(CircleButton(title: title, symbol: symbol, diameter: circleSize) { [weak self] in
+        for (i, (title, symbol, action)) in buttons.enumerated() {
+            let button = CircleButton(title: title, symbol: symbol, diameter: circleSize) { [weak self] in
                 self?.onAction?(action)
-            })
+            }
+            button.setFrameOrigin(NSPoint(x: CGFloat(i) * (circleSize + circleSpacing), y: 0))
+            menu.addSubview(button)
         }
 
         reader.onWord = { [weak self] range in self?.highlighter.highlight(range) }
@@ -204,6 +201,7 @@ final class Popup {
         y = max(vf.minY, min(y, vf.maxY - h))
 
         panel.setFrame(NSRect(x: x, y: y, width: w, height: h), display: true)
+        background.frame = NSRect(origin: .zero, size: size)
         menu.frame = NSRect(origin: .zero, size: size)
         panel.invalidateShadow()
     }
@@ -218,9 +216,6 @@ private final class CircleButton: NSView {
         self.handler = handler
         super.init(frame: NSRect(x: 0, y: 0, width: diameter, height: diameter))
         toolTip = title
-        translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(equalToConstant: diameter).isActive = true
-        heightAnchor.constraint(equalToConstant: diameter).isActive = true
 
         let circle = NSVisualEffectView(frame: bounds)
         circle.material = .popover
@@ -229,7 +224,6 @@ private final class CircleButton: NSView {
         circle.wantsLayer = true
         circle.layer?.cornerRadius = diameter / 2
         circle.layer?.masksToBounds = true
-        circle.autoresizingMask = [.width, .height]
         addSubview(circle)
 
         let button = FirstClickButton(frame: bounds)
@@ -241,7 +235,6 @@ private final class CircleButton: NSView {
         button.contentTintColor = .labelColor
         button.target = self
         button.action = #selector(tapped)
-        button.autoresizingMask = [.width, .height]
         addSubview(button)
     }
 
