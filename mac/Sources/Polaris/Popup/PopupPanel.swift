@@ -7,9 +7,13 @@ final class FloatingPanel: NSPanel {
 
 @MainActor
 final class Popup {
-    private let size = NSSize(width: 400, height: 280)
+    private let size = NSSize(width: 400, height: 310)
+    private let barHeight: CGFloat = 32
     private let panel: FloatingPanel
     private let textView: NSTextView
+    private let reader = SpeechReader()
+    private let controls: ReaderControls
+    private let highlighter: WordHighlighter
     private(set) var text = ""
 
     var isVisible: Bool { panel.isVisible }
@@ -35,7 +39,8 @@ final class Popup {
         effect.layer?.cornerRadius = 12
         effect.layer?.masksToBounds = true
 
-        let scroll = NSScrollView(frame: rect.insetBy(dx: 8, dy: 8))
+        let scroll = NSScrollView(frame: NSRect(x: 8, y: 8 + barHeight,
+                                                width: rect.width - 16, height: rect.height - 16 - barHeight))
         scroll.hasVerticalScroller = true
         scroll.drawsBackground = false
         scroll.autoresizingMask = [.width, .height]
@@ -56,8 +61,24 @@ final class Popup {
 
         scroll.documentView = textView
         effect.addSubview(scroll)
+
+        highlighter = WordHighlighter(textView: textView)
+        controls = ReaderControls(rate: reader.rate)
+        controls.frame = NSRect(x: 0, y: 4, width: rect.width, height: barHeight)
+        controls.autoresizingMask = [.width]
+        effect.addSubview(controls)
         panel.contentView = effect
+
+        reader.onWord = { [weak self] range in self?.highlighter.highlight(range) }
+        reader.onStateChange = { [weak self] playing in self?.controls.setPlaying(playing) }
+        controls.onPlayPause = { [weak self] in self?.togglePlay() }
+        controls.onPrev = { [weak self] in self?.step(-1) }
+        controls.onNext = { [weak self] in self?.step(1) }
+        controls.onRate = { [weak self] rate in self?.reader.rate = rate }
     }
+
+    func togglePlay() { reader.togglePlay(text) }
+    func step(_ delta: Int) { reader.step(delta, text) }
 
     func show(near p: NSPoint) {
         let screen = NSScreen.screens.first { NSMouseInRect(p, $0.frame, false) } ?? NSScreen.main
@@ -76,6 +97,7 @@ final class Popup {
     }
 
     func setText(_ s: String) {
+        reader.stop()
         text = s
         textView.string = s
     }
@@ -83,8 +105,11 @@ final class Popup {
     func append(_ s: String) {
         text += s
         textView.string = text
-        textView.scrollToEndOfDocument(nil)
+        if !reader.isPlaying { textView.scrollToEndOfDocument(nil) }
     }
 
-    func hide() { panel.orderOut(nil) }
+    func hide() {
+        reader.stop()
+        panel.orderOut(nil)
+    }
 }

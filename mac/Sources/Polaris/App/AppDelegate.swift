@@ -10,7 +10,7 @@ import ApplicationServices
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Config.apiKey.isEmpty else {
-            print("❌ Set ANTHROPIC_API_KEY first:  export ANTHROPIC_API_KEY=sk-ant-...")
+            print("❌ Set GEMINI_API_KEY first:  export GEMINI_API_KEY=...")
             exit(1)
         }
 
@@ -39,9 +39,17 @@ import ApplicationServices
         if let m = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] e in
             if e.keyCode == 53 { Task { @MainActor in self?.dismiss() } }
         }) { monitors.append(m) }
+        // Keys while the popup is focused: Esc closes, Space plays/pauses, ← → move by one word.
         if let m = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] e in
-            if e.keyCode == 53 { Task { @MainActor in self?.dismiss() }; return nil }
-            return e
+            guard let self else { return e }
+            switch e.keyCode {
+            case 53: self.dismiss()
+            case 49: self.popup.togglePlay()
+            case 123: self.popup.step(-1)
+            case 124: self.popup.step(1)
+            default: return e
+            }
+            return nil
         }) { monitors.append(m) }
 
         print("✅ Polaris running (model: \(Config.model)). Select text, then draw a quick circle with your cursor.")
@@ -76,7 +84,7 @@ import ApplicationServices
 
             var started = false
             do {
-                try await Claude.stream(selection) { chunk in
+                try await AI.stream(selection) { chunk in
                     if !started { started = true; self.popup.setText("") }
                     self.popup.append(chunk)
                 }

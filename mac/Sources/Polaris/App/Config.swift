@@ -2,8 +2,8 @@
 import AppKit
 
 enum Config {
-    static let apiKey = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"] ?? ""
-    static let model = ProcessInfo.processInfo.environment["CURSOR_AI_MODEL"] ?? "claude-sonnet-5-5"
+    static let apiKey = ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? ""
+    static let model = ProcessInfo.processInfo.environment["GEMINI_MODEL"] ?? "gemini-3.6-flash"
     static let maxSelectionChars = 20_000
     static let systemPrompt = """
     You are an assistant the user summoned by circling their cursor over text they selected. \

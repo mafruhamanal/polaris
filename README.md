@@ -23,6 +23,6 @@ npm run dev                     # http://localhost:3000
 ## Run the Mac app
 ```bash
 cd mac
-export ANTHROPIC_API_KEY=sk-ant-...
+export GEMINI_API_KEY=...        # optional: export GEMINI_MODEL=gemini-3.6-flash
 swift run
 ```
