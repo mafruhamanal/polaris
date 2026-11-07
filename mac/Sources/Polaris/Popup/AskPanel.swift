@@ -74,6 +74,7 @@ final class AskPanel: NSView {
         setBody(NSAttributedString())
         setSuggestions(Self.starters)
         speakButton.isHidden = true
+        sendButton.contentTintColor = SettingsStore.shared.settings.textColor
     }
 
     func showLoading() {
@@ -157,14 +158,22 @@ final class AskPanel: NSView {
     private func setSuggestions(_ list: [String]) {
         suggestions = list
         chips.subviews.forEach { $0.removeFromSuperview() }
+        let color = SettingsStore.shared.settings.textColor
         for title in list {
             let chip = FirstClickButton(title: title, target: self, action: #selector(chipTapped(_:)))
-            chip.bezelStyle = .inline
-            chip.font = .systemFont(ofSize: 12)
-            chip.controlSize = .small
+            chip.isBordered = false
+            chip.attributedTitle = NSAttributedString(string: title, attributes: [
+                .font: NSFont.systemFont(ofSize: 12), .foregroundColor: color,
+            ])
+            chip.wantsLayer = true
+            chip.layer?.cornerRadius = 11
+            chip.layer?.borderWidth = 1
+            chip.layer?.borderColor = color.withAlphaComponent(0.25).cgColor
+            chip.layer?.backgroundColor = color.withAlphaComponent(0.06).cgColor
             chips.addSubview(chip)
         }
         needsLayout = true
+        layoutSubtreeIfNeeded()
     }
 
     private func setSpeaking(_ playing: Bool) {
@@ -212,7 +221,7 @@ final class AskPanel: NSView {
         let maxWidth = w - pad * 2
         var frames: [NSRect] = []
         for chip in chips.subviews {
-            let size = NSSize(width: min(chip.fittingSize.width + 8, maxWidth), height: lineHeight)
+            let size = NSSize(width: min(chip.fittingSize.width + 20, maxWidth), height: lineHeight)
             if x > 0 && x + size.width > maxWidth { x = 0; lineY += lineHeight + 6 }
             frames.append(NSRect(origin: NSPoint(x: x, y: lineY), size: size))
             x += size.width + 6

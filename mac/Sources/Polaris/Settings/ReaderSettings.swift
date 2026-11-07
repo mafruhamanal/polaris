@@ -91,6 +91,8 @@ struct ReaderSettings: Codable, Equatable {
     private var colors: (bg: String, text: String) { Self.backgrounds[background] ?? Self.backgrounds["white"]! }
     var backgroundColor: NSColor { NSColor(hex: colors.bg) ?? .white }
     var textColor: NSColor { NSColor(hex: colors.text) ?? .black }
+    /// Light or dark controls (text boxes, buttons) to match the background.
+    var appearance: NSAppearance? { NSAppearance(named: background == "dark" ? .darkAqua : .aqua) }
 
     /// Text attributes for showing text in the popup with these settings.
     var textAttributes: [NSAttributedString.Key: Any] {

@@ -230,6 +230,8 @@ final class Popup {
         controls.frame = NSRect(x: 0, y: 4, width: size.width, height: barHeight)
         backButton.frame = NSRect(x: 12, y: 4, width: 60, height: barHeight)
         let color = SettingsStore.shared.settings.textColor
+        background.appearance = SettingsStore.shared.settings.appearance
+        ask.appearance = SettingsStore.shared.settings.appearance
         backButton.contentTintColor = color
         backButton.attributedTitle = NSAttributedString(string: "Back", attributes: [
             .font: NSFont.systemFont(ofSize: 12), .foregroundColor: color,
