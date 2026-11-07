@@ -1,0 +1,1 @@
+-- Tables for users' saved responses, reading settings, and Mac app device tokens.
