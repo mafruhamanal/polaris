@@ -11,11 +11,14 @@ enum PopupAction {
 
 @MainActor
 final class Popup {
-    private let menuSize = NSSize(width: 300, height: 92)
+    private let circleSize: CGFloat = 52
+    private let circleSpacing: CGFloat = 14
+    private var menuSize: NSSize { NSSize(width: circleSize * 3 + circleSpacing * 2, height: circleSize) }
     private let contentSize = NSSize(width: 420, height: 320)
     private let barHeight: CGFloat = 32
 
     private let panel: FloatingPanel
+    private let background: NSVisualEffectView
     private let menu: NSStackView
     private let scroll: NSScrollView
     private let textView: NSTextView
@@ -50,11 +53,11 @@ final class Popup {
         effect.layer?.cornerRadius = 12
         effect.layer?.masksToBounds = true
         effect.autoresizingMask = [.width, .height]
+        background = effect
 
         menu = NSStackView()
         menu.distribution = .fillEqually
-        menu.spacing = 8
-        menu.edgeInsets = NSEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        menu.spacing = circleSpacing
         menu.autoresizingMask = [.width, .height]
 
         scroll = NSScrollView(frame: rect)
@@ -77,10 +80,13 @@ final class Popup {
 
         controls.autoresizingMask = [.width, .maxYMargin]
 
-        effect.addSubview(menu)
-        effect.addSubview(scroll)
-        effect.addSubview(controls)
-        panel.contentView = effect
+        // The rounded background only shows behind text; the menu is just three floating circles.
+        let container = NSView(frame: rect)
+        container.addSubview(effect)
+        container.addSubview(menu)
+        container.addSubview(scroll)
+        container.addSubview(controls)
+        panel.contentView = container
 
         highlighter = WordHighlighter(textView: textView)
 
@@ -90,7 +96,7 @@ final class Popup {
             ("Simplify", "wand.and.stars", .simplify),
         ]
         for (title, symbol, action) in buttons {
-            menu.addArrangedSubview(MenuButton(title: title, symbol: symbol) { [weak self] in
+            menu.addArrangedSubview(CircleButton(title: title, symbol: symbol, diameter: circleSize) { [weak self] in
                 self?.onAction?(action)
             })
         }
@@ -109,6 +115,7 @@ final class Popup {
         anchor = p
         stopReading()
         menu.isHidden = false
+        background.isHidden = true
         scroll.isHidden = true
         controls.isHidden = true
         place(menuSize)
@@ -171,6 +178,7 @@ final class Popup {
 
     private func layoutContent(withBar: Bool) {
         menu.isHidden = true
+        background.isHidden = false
         scroll.isHidden = false
         controls.isHidden = !withBar
         place(contentSize)
@@ -195,32 +203,52 @@ final class Popup {
 
         panel.setFrame(NSRect(x: x, y: y, width: w, height: h), display: true)
         menu.frame = NSRect(origin: .zero, size: size)
+        panel.invalidateShadow()
     }
 }
 
-/// An icon with a label underneath, used in the popup's feature menu.
+/// A round, blurred button with just an icon (the name shows as a tooltip), used in the feature menu.
 @MainActor
-private final class MenuButton: NSButton {
+private final class CircleButton: NSView {
     private let handler: () -> Void
 
-    init(title: String, symbol: String, handler: @escaping () -> Void) {
+    init(title: String, symbol: String, diameter: CGFloat, handler: @escaping () -> Void) {
         self.handler = handler
-        super.init(frame: .zero)
-        self.title = title
-        image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)?
+        super.init(frame: NSRect(x: 0, y: 0, width: diameter, height: diameter))
+        toolTip = title
+        translatesAutoresizingMaskIntoConstraints = false
+        widthAnchor.constraint(equalToConstant: diameter).isActive = true
+        heightAnchor.constraint(equalToConstant: diameter).isActive = true
+
+        let circle = NSVisualEffectView(frame: bounds)
+        circle.material = .popover
+        circle.blendingMode = .behindWindow
+        circle.state = .active
+        circle.wantsLayer = true
+        circle.layer?.cornerRadius = diameter / 2
+        circle.layer?.masksToBounds = true
+        circle.autoresizingMask = [.width, .height]
+        addSubview(circle)
+
+        let button = FirstClickButton(frame: bounds)
+        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)?
             .withSymbolConfiguration(.init(pointSize: 20, weight: .regular))
-        imagePosition = .imageAbove
-        bezelStyle = .regularSquare
-        isBordered = false
-        font = .systemFont(ofSize: 11)
-        contentTintColor = .labelColor
-        target = self
-        action = #selector(tapped)
+        button.imagePosition = .imageOnly
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
+        button.contentTintColor = .labelColor
+        button.target = self
+        button.action = #selector(tapped)
+        button.autoresizingMask = [.width, .height]
+        addSubview(button)
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
-    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-
     @objc private func tapped() { handler() }
+}
+
+/// Responds to the first click even when the popup isn't the key window.
+private final class FirstClickButton: NSButton {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
