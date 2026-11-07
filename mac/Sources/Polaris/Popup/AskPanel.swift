@@ -111,6 +111,7 @@ final class AskPanel: NSView {
         }
         setBody(body)
         setSuggestions(result.suggestions.isEmpty ? Self.starters : result.suggestions)
+        setSpeaking(false)
         speakButton.isHidden = false
     }
 
