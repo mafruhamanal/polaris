@@ -4,7 +4,9 @@ import Foundation
 
 enum FontLoader {
     static func registerBundledFonts() {
-        guard let dir = Bundle.module.url(forResource: "Fonts", withExtension: nil),
+        // Polaris.app keeps them in Contents/Resources/Fonts; `swift run` uses the SwiftPM bundle.
+        guard let dir = Bundle.main.url(forResource: "Fonts", withExtension: nil)
+                ?? Bundle.module.url(forResource: "Fonts", withExtension: nil),
               let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
         else {
             print("⚠️  Bundled fonts not found.")

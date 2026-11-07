@@ -1,4 +1,4 @@
-// Holds the user's reading settings, cached on the Mac (later: fetched from the web API's /api/settings).
+// Holds the user's reading settings: fetched from the web API's /api/settings and cached on the Mac.
 import Foundation
 
 @MainActor
@@ -16,6 +16,18 @@ final class SettingsStore {
             settings = saved
         } else {
             settings = .default
+        }
+    }
+
+    private var testMode: Bool { ProcessInfo.processInfo.environment["POLARIS_TEST_SETTINGS"] != nil }
+
+    /// Fetches the user's settings from the web app (no-op if not connected or in test mode).
+    func refresh() async {
+        guard !testMode, AccountLink.isConnected else { return }
+        do {
+            update(try await PolarisAPI.settings())
+        } catch {
+            print("⚠️  Couldn't load settings: \(error.localizedDescription)")
         }
     }
 

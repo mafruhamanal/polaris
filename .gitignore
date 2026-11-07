@@ -11,3 +11,6 @@ next-env.d.ts
 .swiftpm/
 *.xcodeproj/xcuserdata/
 DerivedData/
+
+# Mac app bundle from mac/scripts/build-app.sh
+mac/build/

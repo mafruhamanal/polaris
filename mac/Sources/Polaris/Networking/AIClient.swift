@@ -1,4 +1,4 @@
-// Streams Gemini responses for the selected text (switch to the web API's /api/explain later).
+// Streams Gemini responses for Simplify (switch to the web API later).
 import Foundation
 
 @MainActor
@@ -9,6 +9,9 @@ enum AI {
     }
 
     static func stream(_ text: String, system: String, onText: (String) -> Void) async throws {
+        guard !Config.apiKey.isEmpty else {
+            throw APIError(message: "Simplify needs a Gemini key: set GEMINI_API_KEY (see the README).")
+        }
         let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(Config.model):streamGenerateContent?alt=sse")!
         var req = URLRequest(url: url)
         req.httpMethod = "POST"

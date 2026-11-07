@@ -1,30 +1,34 @@
-// Starts the app: permissions, event monitors, and the circle → selection → popup flow.
+// Starts the app: permissions, menu bar icon, polaris:// links, event monitors, and the circle → popup flow.
 import AppKit
 import ApplicationServices
 
-@MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
+@MainActor final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let detector = CircleDetector()
     private lazy var popup = Popup()
     private var currentTask: Task<Void, Never>?
     private var selection: String?
+    private var context: SelectionContext?
     private var monitors: [Any] = []
+    private var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        guard !Config.apiKey.isEmpty else {
-            print("❌ Set GEMINI_API_KEY first:  export GEMINI_API_KEY=...")
-            exit(1)
+        if Config.apiKey.isEmpty {
+            print("⚠️  GEMINI_API_KEY isn't set, so Simplify won't work. Read aloud and Ask still do.")
         }
 
         popup.onAction = { [weak self] action in self?.run(action) }
         popup.onBack = { [weak self] in self?.goBack() }
+        popup.ask.onAsk = { [weak self] question in self?.ask(question) }
         FontLoader.registerBundledFonts()
+        setUpMenuBar()
+        Task { await SettingsStore.shared.refresh() }
 
         let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         if !AXIsProcessTrustedWithOptions(opts) {
             print("""
             ⚠️  Accessibility permission needed.
-               System Settings → Privacy & Security → Accessibility → enable your terminal app
-               (Terminal, iTerm, VS Code…), then quit and re-run this program.
+               System Settings → Privacy & Security → Accessibility → enable Polaris (if you opened
+               Polaris.app) or your terminal app (if you used swift run), then restart Polaris.
             """)
         }
 
@@ -44,9 +48,11 @@ import ApplicationServices
         if let m = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] e in
             if e.keyCode == 53 { Task { @MainActor in self?.dismiss() } }
         }) { monitors.append(m) }
-        // Keys while the popup is focused: Esc closes, Space plays/pauses, ← → move by one word.
+        // Keys while the popup is focused: Esc closes, Space plays/pauses, ← → move by one word,
+        // Delete goes back. While typing a question, only Esc is ours.
         if let m = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] e in
             guard let self else { return e }
+            if self.popup.isTyping && e.keyCode != 53 { return e }
             switch e.keyCode {
             case 53: self.dismiss()
             case 51 where self.popup.canGoBack: self.goBack()
@@ -84,6 +90,8 @@ import ApplicationServices
                 selection = String(selection.prefix(Config.maxSelectionChars))
             }
             self.selection = selection
+            // Read the surrounding text now, while the other app still has focus.
+            self.context = ContextReader.read(selection: selection)
             self.popup.showMenu(near: location)
         }
     }
@@ -94,10 +102,29 @@ import ApplicationServices
         switch action {
         case .read:
             popup.showReader(selection)
-        case .explain:
-            streamAI(selection, prompt: Config.explainPrompt)
+        case .ask:
+            popup.showAsk()
         case .simplify:
             streamAI(selection, prompt: Config.simplifyPrompt(level: SettingsStore.shared.settings.readingLevel))
+        }
+    }
+
+    private func ask(_ question: String) {
+        guard let context else { return }
+        currentTask?.cancel()
+        popup.ask.showLoading()
+        currentTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await PolarisAPI.ask(question, context: context)
+                if !Task.isCancelled { self.popup.ask.show(result, context: context) }
+            } catch is CancellationError {
+            } catch let error as URLError where error.code == .cancelled {
+            } catch let error as URLError where error.code == .cannotConnectToHost {
+                if !Task.isCancelled { self.popup.ask.showError("Can't reach the Polaris web app at \(Config.apiBaseURL.absoluteString). Is it running?") }
+            } catch {
+                if !Task.isCancelled { self.popup.ask.showError(error.localizedDescription) }
+            }
         }
     }
 
@@ -125,4 +152,83 @@ import ApplicationServices
             }
         }
     }
+
+    // MARK: - polaris:// links
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where AccountLink.handle(url) { didConnect() }
+    }
+
+    private func didConnect() {
+        popup.showText("✅ Polaris is connected to your account.", near: NSEvent.mouseLocation)
+        Task { await SettingsStore.shared.refresh() }
+    }
+
+    // MARK: - Menu bar
+
+    private func setUpMenuBar() {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        item.button?.image = NSImage(systemSymbolName: "star.fill", accessibilityDescription: "Polaris")
+        let menu = NSMenu()
+        menu.delegate = self
+        item.menu = menu
+        statusItem = item
+    }
+
+    /// Rebuilt each time it opens, so it always shows whether we're connected.
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        let connected = AccountLink.isConnected
+        let status = NSMenuItem(title: connected ? "Connected to your account" : "Not connected", action: nil, keyEquivalent: "")
+        status.isEnabled = false
+        menu.addItem(status)
+        if connected {
+            menu.addItem(item("Refresh Reading Settings", #selector(refreshSettings)))
+            menu.addItem(item("Disconnect", #selector(disconnect)))
+        } else {
+            menu.addItem(item("Connect Account…", #selector(connect)))
+            menu.addItem(item("Paste Connect Token…", #selector(pasteToken)))
+        }
+        menu.addItem(.separator())
+        menu.addItem(item("Quit Polaris", #selector(quit), key: "q"))
+    }
+
+    private func item(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
+        item.target = self
+        return item
+    }
+
+    @objc private func connect() { AccountLink.openConnectPage() }
+
+    /// For `swift run`, where polaris:// links can't reach the app: paste the token from /connect.
+    @objc private func pasteToken() {
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "Paste your connect token"
+        alert.informativeText = "Open \(Config.apiBaseURL.absoluteString)/connect, copy the token (or the polaris:// link), and paste it here."
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Connect")
+        alert.addButton(withTitle: "Cancel")
+        alert.window.initialFirstResponder = field
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        let value = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let url = URL(string: value), url.scheme == "polaris" {
+            if AccountLink.handle(url) { didConnect() }
+        } else if !value.isEmpty {
+            AccountLink.save(value)
+            didConnect()
+        }
+    }
+
+    @objc private func refreshSettings() { Task { await SettingsStore.shared.refresh() } }
+
+    @objc private func disconnect() {
+        AccountLink.disconnect()
+        SettingsStore.shared.update(.default)
+    }
+
+    @objc private func quit() { NSApp.terminate(nil) }
 }

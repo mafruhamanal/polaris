@@ -1,16 +1,12 @@
-// App configuration: API key, model, prompts, and gesture options.
+// App configuration: API key, model, web API address, prompts, and gesture options.
 import AppKit
 
 enum Config {
     static let apiKey = ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? ""
     static let model = ProcessInfo.processInfo.environment["GEMINI_MODEL"] ?? "gemini-3.6-flash"
+    /// The web app (Ask, settings, Connect). Set POLARIS_API_URL to the Vercel URL once deployed.
+    static let apiBaseURL = URL(string: ProcessInfo.processInfo.environment["POLARIS_API_URL"] ?? "http://localhost:3000")!
     static let maxSelectionChars = 20_000
-    static let explainPrompt = """
-    You are an assistant the user summoned by circling their cursor over text they selected. \
-    Explain what the text means and anything in it that may be hard to understand. \
-    Be concise: a few short paragraphs at most. Reply in plain text with no Markdown formatting.
-    """
-
     /// Rewrites the selection at the user's reading level ("simple", "standard", or "advanced").
     static func simplifyPrompt(level: String) -> String {
         let audience: String

@@ -1,4 +1,4 @@
-// Floating popup near the cursor: a menu of features first, then the reader or the AI response.
+// Floating popup near the cursor: a menu of features first, then the reader, Ask, or the AI response.
 import AppKit
 
 final class FloatingPanel: NSPanel {
@@ -6,7 +6,7 @@ final class FloatingPanel: NSPanel {
 }
 
 enum PopupAction {
-    case read, explain, simplify
+    case read, ask, simplify
 }
 
 @MainActor
@@ -15,6 +15,7 @@ final class Popup {
     private let circleSpacing: CGFloat = 14
     private var menuSize: NSSize { NSSize(width: circleSize * 3 + circleSpacing * 2, height: circleSize) }
     private let contentSize = NSSize(width: 420, height: 320)
+    private let askSize = NSSize(width: 440, height: 400)
     private let barHeight: CGFloat = 32
 
     private let panel: FloatingPanel
@@ -25,6 +26,7 @@ final class Popup {
     private let textView: NSTextView
     private let controls = ReaderControls(frame: .zero)
     private let backButton = FirstClickButton()
+    let ask = AskPanel(frame: .zero)
     private let reader = SpeechReader()
     private let highlighter: WordHighlighter
     private var anchor = NSPoint.zero
@@ -93,6 +95,7 @@ final class Popup {
         container.addSubview(menu)
         container.addSubview(scroll)
         container.addSubview(controls)
+        container.addSubview(ask)
         container.addSubview(backButton)
         panel.contentView = container
 
@@ -102,7 +105,7 @@ final class Popup {
 
         let buttons: [(String, String, PopupAction)] = [
             ("Read aloud", "speaker.wave.2.fill", .read),
-            ("Explain", "text.bubble", .explain),
+            ("Ask", "questionmark.bubble", .ask),
             ("Simplify", "wand.and.stars", .simplify),
         ]
         for (i, (title, symbol, action)) in buttons.enumerated() {
@@ -132,9 +135,27 @@ final class Popup {
         scroll.isHidden = true
         controls.isHidden = true
         backButton.isHidden = true
+        ask.isHidden = true
+        ask.stop()
         place(menuSize, hugCursor: true)
         panel.orderFrontRegardless()
     }
+
+    /// The Ask view: question box focused so the user can type right away.
+    func showAsk() {
+        stopReading()
+        layoutContent(back: true, readerControls: false, size: askSize)
+        scroll.isHidden = true
+        ask.isHidden = false
+        ask.frame = NSRect(origin: .zero, size: askSize)
+        ask.reset()
+        panel.orderFrontRegardless()
+        panel.makeKey()
+        panel.makeFirstResponder(ask.field)
+    }
+
+    /// True while the user is typing in a text box (so Space, arrows and Delete type normally).
+    var isTyping: Bool { (panel.firstResponder as? NSTextView)?.isFieldEditor == true }
 
     /// Returns to the three circles where they were.
     func backToMenu() { showMenu(near: anchor) }
@@ -163,6 +184,7 @@ final class Popup {
 
     func hide() {
         stopReading()
+        ask.stop()
         panel.orderOut(nil)
     }
 
@@ -192,17 +214,20 @@ final class Popup {
 
     // MARK: - Layout
 
-    private func layoutContent(back: Bool, readerControls: Bool) {
+    private func layoutContent(back: Bool, readerControls: Bool, size: NSSize? = nil) {
+        let size = size ?? contentSize
         canGoBack = back
         menu.isHidden = true
         background.isHidden = false
         scroll.isHidden = false
+        ask.isHidden = true
+        ask.stop()
         controls.isHidden = !readerControls
         backButton.isHidden = !back
-        place(contentSize)
+        place(size)
         let bar = back || readerControls ? barHeight : 0
-        scroll.frame = NSRect(x: 8, y: 8 + bar, width: contentSize.width - 16, height: contentSize.height - 16 - bar)
-        controls.frame = NSRect(x: 0, y: 4, width: contentSize.width, height: barHeight)
+        scroll.frame = NSRect(x: 8, y: 8 + bar, width: size.width - 16, height: size.height - 16 - bar)
+        controls.frame = NSRect(x: 0, y: 4, width: size.width, height: barHeight)
         backButton.frame = NSRect(x: 12, y: 4, width: 60, height: barHeight)
         let color = SettingsStore.shared.settings.textColor
         backButton.contentTintColor = color
