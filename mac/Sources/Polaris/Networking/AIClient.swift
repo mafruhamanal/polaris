@@ -8,7 +8,7 @@ enum AI {
         var errorDescription: String? { message }
     }
 
-    static func stream(_ text: String, onText: (String) -> Void) async throws {
+    static func stream(_ text: String, system: String, onText: (String) -> Void) async throws {
         let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(Config.model):streamGenerateContent?alt=sse")!
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
@@ -16,7 +16,7 @@ enum AI {
         req.setValue("application/json", forHTTPHeaderField: "content-type")
 
         let body: [String: Any] = [
-            "system_instruction": ["parts": [["text": Config.systemPrompt]]],
+            "system_instruction": ["parts": [["text": system]]],
             "contents": [["role": "user", "parts": [["text": "Selected text:\n\n\(text)"]]]],
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: body)

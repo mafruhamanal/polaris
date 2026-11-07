@@ -3,9 +3,6 @@ import AVFoundation
 
 @MainActor
 final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate {
-    static let minRate: Float = 0.5, maxRate: Float = 2.0
-    private static let rateKey = "polaris.speechRate"
-
     private let synth = AVSpeechSynthesizer()
     private var text: NSString = ""
     private var words: [NSRange] = []
@@ -19,13 +16,9 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate {
     var onWord: ((NSRange?) -> Void)?
     var onStateChange: ((Bool) -> Void)?
 
-    /// Speed multiplier (1.0 = normal), remembered between launches.
-    var rate: Float = UserDefaults.standard.object(forKey: rateKey) as? Float ?? 1.0 {
-        didSet {
-            UserDefaults.standard.set(rate, forKey: Self.rateKey)
-            if isPlaying { speak(from: index) }
-        }
-    }
+    /// Speed multiplier (1.0 = normal) and voice, from the user's reading settings.
+    var rate: Float = 1.0
+    var voiceIdentifier: String?
 
     override init() {
         super.init()
@@ -99,6 +92,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate {
         let u = AVSpeechUtterance(string: text.substring(from: utteranceOffset))
         u.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                      max(AVSpeechUtteranceMinimumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * rate))
+        if let id = voiceIdentifier { u.voice = AVSpeechSynthesisVoice(identifier: id) }
         utterance = u
         needsRestart = false
         synth.speak(u)

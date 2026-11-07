@@ -6,6 +6,7 @@ import ApplicationServices
     private let detector = CircleDetector()
     private lazy var popup = Popup()
     private var currentTask: Task<Void, Never>?
+    private var selection: String?
     private var monitors: [Any] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -13,6 +14,8 @@ import ApplicationServices
             print("❌ Set GEMINI_API_KEY first:  export GEMINI_API_KEY=...")
             exit(1)
         }
+
+        popup.onAction = { [weak self] action in self?.run(action) }
 
         let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         if !AXIsProcessTrustedWithOptions(opts) {
@@ -71,20 +74,37 @@ import ApplicationServices
             guard let self else { return }
             guard var selection = await SelectionReader.read(),
                   !selection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                self.popup.setText("No selection found. Highlight some text first, then circle.")
-                self.popup.show(near: location)
+                self.popup.showText("No selection found. Highlight some text first, then circle.", near: location)
                 return
             }
             if selection.count > Config.maxSelectionChars {
                 selection = String(selection.prefix(Config.maxSelectionChars))
             }
+            self.selection = selection
+            self.popup.showMenu(near: location)
+        }
+    }
 
-            self.popup.setText("Thinking…")
-            self.popup.show(near: location)
+    private func run(_ action: PopupAction) {
+        guard let selection else { return }
+        currentTask?.cancel()
+        switch action {
+        case .read:
+            popup.showReader(selection)
+        case .explain:
+            streamAI(selection, prompt: Config.explainPrompt)
+        case .simplify:
+            streamAI(selection, prompt: Config.simplifyPrompt(level: SettingsStore.shared.settings.readingLevel))
+        }
+    }
 
+    private func streamAI(_ text: String, prompt: String) {
+        popup.showText("Thinking…")
+        currentTask = Task { [weak self] in
+            guard let self else { return }
             var started = false
             do {
-                try await AI.stream(selection) { chunk in
+                try await AI.stream(text, system: prompt) { chunk in
                     if !started { started = true; self.popup.setText("") }
                     self.popup.append(chunk)
                 }
