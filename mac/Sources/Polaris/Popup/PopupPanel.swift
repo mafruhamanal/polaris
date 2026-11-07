@@ -24,13 +24,17 @@ final class Popup {
     private let scroll: NSScrollView
     private let textView: NSTextView
     private let controls = ReaderControls(frame: .zero)
+    private let backButton = FirstClickButton()
     private let reader = SpeechReader()
     private let highlighter: WordHighlighter
     private var anchor = NSPoint.zero
     private var isReading = false
     private(set) var text = ""
+    /// True while a feature view is showing, so Back can return to the circles.
+    private(set) var canGoBack = false
 
     var onAction: ((PopupAction) -> Void)?
+    var onBack: (() -> Void)?
     var isVisible: Bool { panel.isVisible }
 
     init() {
@@ -77,6 +81,11 @@ final class Popup {
         scroll.documentView = textView
 
         controls.autoresizingMask = []
+        backButton.image = NSImage(systemSymbolName: "chevron.left", accessibilityDescription: "Back")
+        backButton.imagePosition = .imageLeading
+        backButton.bezelStyle = .regularSquare
+        backButton.isBordered = false
+        backButton.toolTip = "Back to the three icons (Delete)"
 
         // The rounded background only shows behind text; the menu is just three floating circles.
         let container = NSView(frame: rect)
@@ -84,9 +93,12 @@ final class Popup {
         container.addSubview(menu)
         container.addSubview(scroll)
         container.addSubview(controls)
+        container.addSubview(backButton)
         panel.contentView = container
 
         highlighter = WordHighlighter(textView: textView)
+        backButton.target = self
+        backButton.action = #selector(backTapped)
 
         let buttons: [(String, String, PopupAction)] = [
             ("Read aloud", "speaker.wave.2.fill", .read),
@@ -114,26 +126,32 @@ final class Popup {
     func showMenu(near p: NSPoint) {
         anchor = p
         stopReading()
+        canGoBack = false
         menu.isHidden = false
         background.isHidden = true
         scroll.isHidden = true
         controls.isHidden = true
+        backButton.isHidden = true
         place(menuSize, hugCursor: true)
         panel.orderFrontRegardless()
     }
 
+    /// Returns to the three circles where they were.
+    func backToMenu() { showMenu(near: anchor) }
+
     /// Plain text (a status message or an AI response), no reader controls.
-    func showText(_ s: String, near p: NSPoint? = nil) {
+    /// `canGoBack` adds a Back button (off for messages shown before the menu).
+    func showText(_ s: String, near p: NSPoint? = nil, canGoBack: Bool = false) {
         if let p { anchor = p }
         stopReading()
-        layoutContent(withBar: false)
+        layoutContent(back: canGoBack, readerControls: false)
         setText(s)
         panel.orderFrontRegardless()
     }
 
     /// Reads `s` aloud, highlighting each word, formatted with the user's reading settings.
     func showReader(_ s: String) {
-        layoutContent(withBar: true)
+        layoutContent(back: true, readerControls: true)
         isReading = true
         setText(s)
         let settings = SettingsStore.shared.settings
@@ -174,16 +192,26 @@ final class Popup {
 
     // MARK: - Layout
 
-    private func layoutContent(withBar: Bool) {
+    private func layoutContent(back: Bool, readerControls: Bool) {
+        canGoBack = back
         menu.isHidden = true
         background.isHidden = false
         scroll.isHidden = false
-        controls.isHidden = !withBar
+        controls.isHidden = !readerControls
+        backButton.isHidden = !back
         place(contentSize)
-        let bar = withBar ? barHeight : 0
+        let bar = back || readerControls ? barHeight : 0
         scroll.frame = NSRect(x: 8, y: 8 + bar, width: contentSize.width - 16, height: contentSize.height - 16 - bar)
         controls.frame = NSRect(x: 0, y: 4, width: contentSize.width, height: barHeight)
+        backButton.frame = NSRect(x: 12, y: 4, width: 60, height: barHeight)
+        let color = SettingsStore.shared.settings.textColor
+        backButton.contentTintColor = color
+        backButton.attributedTitle = NSAttributedString(string: "Back", attributes: [
+            .font: NSFont.systemFont(ofSize: 12), .foregroundColor: color,
+        ])
     }
+
+    @objc private func backTapped() { onBack?() }
 
     /// Sizes the panel and positions it next to the anchor point, kept on screen.
     /// `hugCursor` puts it just right of the cursor, centered on it (for the circle menu).
@@ -248,6 +276,6 @@ private final class CircleButton: NSView {
 }
 
 /// Responds to the first click even when the popup isn't the key window.
-private final class FirstClickButton: NSButton {
+final class FirstClickButton: NSButton {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }

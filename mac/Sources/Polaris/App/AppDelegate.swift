@@ -16,6 +16,7 @@ import ApplicationServices
         }
 
         popup.onAction = { [weak self] action in self?.run(action) }
+        popup.onBack = { [weak self] in self?.goBack() }
         FontLoader.registerBundledFonts()
 
         let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
@@ -48,6 +49,7 @@ import ApplicationServices
             guard let self else { return e }
             switch e.keyCode {
             case 53: self.dismiss()
+            case 51 where self.popup.canGoBack: self.goBack()
             case 49: self.popup.togglePlay()
             case 123: self.popup.step(-1)
             case 124: self.popup.step(1)
@@ -99,8 +101,14 @@ import ApplicationServices
         }
     }
 
+    private func goBack() {
+        currentTask?.cancel()
+        currentTask = nil
+        popup.backToMenu()
+    }
+
     private func streamAI(_ text: String, prompt: String) {
-        popup.showText("Thinking…")
+        popup.showText("Thinking…", canGoBack: true)
         currentTask = Task { [weak self] in
             guard let self else { return }
             var started = false
