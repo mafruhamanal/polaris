@@ -19,6 +19,7 @@ final class Popup {
 
     private let panel: FloatingPanel
     private let background: NSVisualEffectView
+    private let tint = NSView()
     private let menu = NSView()
     private let scroll: NSScrollView
     private let textView: NSTextView
@@ -53,6 +54,8 @@ final class Popup {
         effect.layer?.cornerRadius = 12
         effect.layer?.masksToBounds = true
         background = effect
+        tint.wantsLayer = true
+        effect.addSubview(tint)
 
         scroll = NSScrollView(frame: rect)
         scroll.hasVerticalScroller = true
@@ -159,15 +162,13 @@ final class Popup {
 
     func setText(_ s: String) {
         text = s
-        textView.textStorage?.setAttributedString(
-            NSAttributedString(string: s, attributes: SettingsStore.shared.settings.textAttributes))
+        textView.textStorage?.setAttributedString(SettingsStore.shared.settings.styled(s))
         textView.scrollToBeginningOfDocument(nil)
     }
 
     func append(_ s: String) {
         text += s
-        textView.textStorage?.append(
-            NSAttributedString(string: s, attributes: SettingsStore.shared.settings.textAttributes))
+        textView.textStorage?.append(SettingsStore.shared.settings.styled(s))
         textView.scrollToEndOfDocument(nil)
     }
 
@@ -202,6 +203,11 @@ final class Popup {
 
         panel.setFrame(NSRect(x: x, y: y, width: w, height: h), display: true)
         background.frame = NSRect(origin: .zero, size: size)
+        tint.frame = background.bounds
+        let color = SettingsStore.shared.settings.backgroundColor
+        tint.isHidden = color == nil
+        tint.layer?.backgroundColor = color?.cgColor
+        controls.setTint(SettingsStore.shared.settings.textColor)
         menu.frame = NSRect(origin: .zero, size: size)
         panel.invalidateShadow()
     }

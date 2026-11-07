@@ -8,6 +8,7 @@ final class ReaderControls: NSView {
     var onPlayPause: (() -> Void)?
 
     private let playButton = NSButton()
+    private var buttons: [NSButton] = []
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -15,7 +16,8 @@ final class ReaderControls: NSView {
         let next = Self.iconButton("forward.fill", "Next word", #selector(nextTapped), self)
         Self.style(playButton, "play.fill", "Play", #selector(playTapped), self)
 
-        let stack = NSStackView(views: [prev, playButton, next])
+        buttons = [prev, playButton, next]
+        let stack = NSStackView(views: buttons)
         stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
@@ -26,6 +28,11 @@ final class ReaderControls: NSView {
     }
 
     required init?(coder: NSCoder) { fatalError() }
+
+    /// Colors the buttons to match the popup's text color.
+    func setTint(_ color: NSColor) {
+        for b in buttons { b.contentTintColor = color }
+    }
 
     func setPlaying(_ playing: Bool) {
         let name = playing ? "pause.fill" : "play.fill"

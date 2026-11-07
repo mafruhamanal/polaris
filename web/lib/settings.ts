@@ -6,8 +6,12 @@ export type ReaderSettings = {
   fontSize: number;
   /** Extra space between letters, as a fraction of the font size (0.05 = 5%). */
   letterSpacing: number;
+  /** Extra space between words, as a fraction of the font size (0.25 = a quarter of the size). */
+  wordSpacing: number;
   /** Line height as a multiple of the normal height. */
   lineSpacing: number;
+  /** Popup background as "#RRGGBB"; null keeps the default translucent look. */
+  background: string | null;
   /** macOS voice identifier; null uses the system voice. */
   voice: string | null;
   /** Speech speed multiplier (1.0 = normal). */
@@ -19,7 +23,9 @@ export const defaultSettings: ReaderSettings = {
   fontFamily: "system",
   fontSize: 16,
   letterSpacing: 0,
+  wordSpacing: 0,
   lineSpacing: 1.4,
+  background: null,
   voice: null,
   readingSpeed: 1.0,
   readingLevel: "standard",
