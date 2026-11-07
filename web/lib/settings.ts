@@ -154,6 +154,8 @@ export interface SavedSettings {
   fontSize: number;
   /** Fraction of the font size: 0 = normal, 0.05 = 5% extra, 0.1 = wide */
   letterSpacing: number;
+  /** Extra space between words, as a fraction of the font size: 0 = normal, 0.2 = wide */
+  wordSpacing: number;
   /** Multiple of normal line height: 1.0 = tight, 1.4 = default, 2.0 = double */
   lineSpacing: number;
   /** macOS voice id, or null for the Mac's default voice */
@@ -171,6 +173,7 @@ export const SAVED_DEFAULTS: SavedSettings = {
   fontFamily: "system",
   fontSize: 16,
   letterSpacing: 0,
+  wordSpacing: 0,
   lineSpacing: 1.4,
   voice: null,
   readingSpeed: 1,
@@ -184,12 +187,13 @@ const SAVED_LEVEL: Record<ReadingLevel, SavedReadingLevel> = {
   simplest: "simple",
 };
 
-/** Converts the quiz's settings into the saved format. Fields the Mac doesn't have are left out. */
+/** Converts the quiz's settings into the saved format. */
 export function toSavedSettings(s: ReaderSettings): SavedSettings {
   return {
     fontFamily: s.font,
     fontSize: s.fontSizePx,
     letterSpacing: s.letterSpacingEm,
+    wordSpacing: s.wordSpacingEm,
     lineSpacing: s.lineSpacing,
     voice: s.ttsVoice,
     readingSpeed: s.ttsSpeed,
@@ -211,6 +215,7 @@ export function sanitizeSavedSettings(input: unknown): SavedSettings {
     fontFamily: typeof o.fontFamily === "string" && o.fontFamily.trim() && o.fontFamily.length < 100 ? o.fontFamily.trim() : d.fontFamily,
     fontSize: num(o.fontSize, 10, 40, d.fontSize),
     letterSpacing: num(o.letterSpacing, 0, 0.5, d.letterSpacing),
+    wordSpacing: num(o.wordSpacing, 0, 0.5, d.wordSpacing),
     lineSpacing: num(o.lineSpacing, 1, 3, d.lineSpacing),
     voice: typeof o.voice === "string" && o.voice.length > 0 && o.voice.length < 128 ? o.voice : null,
     readingSpeed: num(o.readingSpeed, 0.5, 2, d.readingSpeed),
