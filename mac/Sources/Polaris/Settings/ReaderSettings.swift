@@ -3,7 +3,7 @@ import AppKit
 
 /// Same JSON shape as `SavedSettings` in web/lib/settings.ts (what GET /api/settings returns).
 struct ReaderSettings: Codable, Equatable {
-    /// "system", "serif", "rounded", "monospace", or an installed font's name.
+    /// "system", "serif", "rounded", "monospace", or a font family name such as "Lexend" or "Verdana".
     var fontFamily = "system"
     var fontSize: Double = 16
     /// Extra space between letters, as a fraction of the font size (0.05 = 5%).
@@ -12,7 +12,7 @@ struct ReaderSettings: Codable, Equatable {
     var wordSpacing: Double = 0
     /// Line height as a multiple of the normal height.
     var lineSpacing: Double = 1.4
-    /// "white", "cream", or "dark" (colors in mac/Resources/Fonts/README.md and the web's BACKGROUNDS).
+    /// "white", "cream", or "dark" (colors in Resources/Fonts/README.md and the web's BACKGROUNDS).
     var background = "white"
     /// AVSpeechSynthesisVoice identifier; nil uses the system voice.
     var voice: String? = nil
@@ -81,7 +81,10 @@ struct ReaderSettings: Codable, Equatable {
             let base = NSFont.systemFont(ofSize: size)
             let design: NSFontDescriptor.SystemDesign = fontFamily == "serif" ? .serif : .rounded
             return base.fontDescriptor.withDesign(design).flatMap { NSFont(descriptor: $0, size: size) } ?? base
-        default: return NSFont(name: fontFamily, size: size) ?? .systemFont(ofSize: size)
+        default:
+            // A family name like "Lexend" (bundled fonts are registered by FontLoader at launch).
+            return NSFontManager.shared.font(withFamily: fontFamily, traits: [], weight: 5, size: size)
+                ?? NSFont(name: fontFamily, size: size) ?? .systemFont(ofSize: size)
         }
     }
 

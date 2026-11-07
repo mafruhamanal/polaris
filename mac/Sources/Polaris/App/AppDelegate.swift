@@ -16,6 +16,7 @@ import ApplicationServices
         }
 
         popup.onAction = { [weak self] action in self?.run(action) }
+        FontLoader.registerBundledFonts()
 
         let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         if !AXIsProcessTrustedWithOptions(opts) {
