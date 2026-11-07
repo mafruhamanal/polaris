@@ -68,7 +68,7 @@ export function championWins<T>(t: Tournament<T>): number {
 // ---------------------------------------------------------------------------
 
 /** Which setting's explanation each round fills in. */
-const EVIDENCE_KEY: Record<RoundId, keyof ReaderSettings> = {
+export const EVIDENCE_KEY: Record<RoundId, keyof ReaderSettings> = {
   font: "font",
   background: "background",
   size: "fontSizePx",
