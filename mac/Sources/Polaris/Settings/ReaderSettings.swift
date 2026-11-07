@@ -1,7 +1,7 @@
 // ReaderSettings model (font, size, spacing, background, voice, speed, level) matching the web app.
 import AppKit
 
-/// Same JSON shape as `ReaderSettings` in web/lib/settings.ts, which the web app's quiz fills in.
+/// Same JSON shape as `SavedSettings` in web/lib/settings.ts (what GET /api/settings returns).
 struct ReaderSettings: Codable, Equatable {
     /// "system", "serif", "rounded", "monospace", or an installed font's name.
     var fontFamily = "system"
@@ -12,8 +12,8 @@ struct ReaderSettings: Codable, Equatable {
     var wordSpacing: Double = 0
     /// Line height as a multiple of the normal height.
     var lineSpacing: Double = 1.4
-    /// Popup background as "#RRGGBB"; nil keeps the default translucent look.
-    var background: String? = nil
+    /// "white", "cream", or "dark" (colors in mac/Resources/Fonts/README.md and the web's BACKGROUNDS).
+    var background = "white"
     /// AVSpeechSynthesisVoice identifier; nil uses the system voice.
     var voice: String? = nil
     /// Speech speed multiplier (1.0 = normal).
@@ -23,6 +23,13 @@ struct ReaderSettings: Codable, Equatable {
 
     static let `default` = ReaderSettings()
 
+    /// Background and text colors for each `background` value.
+    static let backgrounds: [String: (bg: String, text: String)] = [
+        "white": ("#FFFFFF", "#1A1A1A"),
+        "cream": ("#FBF5E6", "#1A1A1A"),
+        "dark": ("#1E1E24", "#E8E6E3"),
+    ]
+
     /// A deliberately different look for testing the popup (run with POLARIS_TEST_SETTINGS=1).
     static let testPreset = ReaderSettings(
         fontFamily: "serif",
@@ -30,11 +37,40 @@ struct ReaderSettings: Codable, Equatable {
         letterSpacing: 0.08,
         wordSpacing: 0.3,
         lineSpacing: 2.0,
-        background: "#FFF5DC",
+        background: "cream",
         voice: "com.apple.voice.super-compact.en-GB.Daniel",
         readingSpeed: 0.7,
         readingLevel: "simple"
     )
+
+    init(fontFamily: String = "system", fontSize: Double = 16, letterSpacing: Double = 0, wordSpacing: Double = 0,
+         lineSpacing: Double = 1.4, background: String = "white", voice: String? = nil,
+         readingSpeed: Double = 1.0, readingLevel: String = "standard") {
+        self.fontFamily = fontFamily
+        self.fontSize = fontSize
+        self.letterSpacing = letterSpacing
+        self.wordSpacing = wordSpacing
+        self.lineSpacing = lineSpacing
+        self.background = background
+        self.voice = voice
+        self.readingSpeed = readingSpeed
+        self.readingLevel = readingLevel
+    }
+
+    /// Any missing field gets its default (the web doesn't send `wordSpacing` yet).
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = ReaderSettings.default
+        fontFamily = try c.decodeIfPresent(String.self, forKey: .fontFamily) ?? d.fontFamily
+        fontSize = try c.decodeIfPresent(Double.self, forKey: .fontSize) ?? d.fontSize
+        letterSpacing = try c.decodeIfPresent(Double.self, forKey: .letterSpacing) ?? d.letterSpacing
+        wordSpacing = try c.decodeIfPresent(Double.self, forKey: .wordSpacing) ?? d.wordSpacing
+        lineSpacing = try c.decodeIfPresent(Double.self, forKey: .lineSpacing) ?? d.lineSpacing
+        background = try c.decodeIfPresent(String.self, forKey: .background) ?? d.background
+        voice = try c.decodeIfPresent(String.self, forKey: .voice)
+        readingSpeed = try c.decodeIfPresent(Double.self, forKey: .readingSpeed) ?? d.readingSpeed
+        readingLevel = try c.decodeIfPresent(String.self, forKey: .readingLevel) ?? d.readingLevel
+    }
 
     var font: NSFont {
         let size = CGFloat(fontSize)
@@ -49,14 +85,9 @@ struct ReaderSettings: Codable, Equatable {
         }
     }
 
-    var backgroundColor: NSColor? { background.flatMap(NSColor.init(hex:)) }
-
-    /// Black or white text, whichever reads better on the chosen background.
-    var textColor: NSColor {
-        guard let bg = backgroundColor?.usingColorSpace(.sRGB) else { return .labelColor }
-        let luminance = 0.2126 * bg.redComponent + 0.7152 * bg.greenComponent + 0.0722 * bg.blueComponent
-        return luminance > 0.5 ? .black : .white
-    }
+    private var colors: (bg: String, text: String) { Self.backgrounds[background] ?? Self.backgrounds["white"]! }
+    var backgroundColor: NSColor { NSColor(hex: colors.bg) ?? .white }
+    var textColor: NSColor { NSColor(hex: colors.text) ?? .black }
 
     /// Text attributes for showing text in the popup with these settings.
     var textAttributes: [NSAttributedString.Key: Any] {

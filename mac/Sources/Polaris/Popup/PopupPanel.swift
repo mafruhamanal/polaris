@@ -204,9 +204,7 @@ final class Popup {
         panel.setFrame(NSRect(x: x, y: y, width: w, height: h), display: true)
         background.frame = NSRect(origin: .zero, size: size)
         tint.frame = background.bounds
-        let color = SettingsStore.shared.settings.backgroundColor
-        tint.isHidden = color == nil
-        tint.layer?.backgroundColor = color?.cgColor
+        tint.layer?.backgroundColor = SettingsStore.shared.settings.backgroundColor.cgColor
         controls.setTint(SettingsStore.shared.settings.textColor)
         menu.frame = NSRect(origin: .zero, size: size)
         panel.invalidateShadow()
