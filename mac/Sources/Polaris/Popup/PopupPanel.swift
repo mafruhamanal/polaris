@@ -118,7 +118,7 @@ final class Popup {
         background.isHidden = true
         scroll.isHidden = true
         controls.isHidden = true
-        place(menuSize)
+        place(menuSize, hugCursor: true)
         panel.orderFrontRegardless()
     }
 
@@ -188,16 +188,18 @@ final class Popup {
     }
 
     /// Sizes the panel and positions it next to the anchor point, kept on screen.
-    private func place(_ size: NSSize) {
+    /// `hugCursor` puts it just right of the cursor, centered on it (for the circle menu).
+    private func place(_ size: NSSize, hugCursor: Bool = false) {
         let p = anchor
         let screen = NSScreen.screens.first { NSMouseInRect(p, $0.frame, false) } ?? NSScreen.main
         let vf = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
         let w = size.width, h = size.height
 
-        var x = p.x + 18
-        var y = p.y - h - 18
-        if x + w > vf.maxX { x = p.x - w - 18 }
-        if y < vf.minY { y = p.y + 18 }
+        let gap: CGFloat = hugCursor ? 6 : 18
+        var x = p.x + gap
+        var y = hugCursor ? p.y - h / 2 : p.y - h - gap
+        if x + w > vf.maxX { x = p.x - w - gap }
+        if y < vf.minY { y = p.y + gap }
         x = max(vf.minX, min(x, vf.maxX - w))
         y = max(vf.minY, min(y, vf.maxY - h))
 
