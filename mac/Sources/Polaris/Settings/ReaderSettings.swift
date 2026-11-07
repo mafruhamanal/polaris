@@ -19,6 +19,17 @@ struct ReaderSettings: Codable, Equatable {
 
     static let `default` = ReaderSettings()
 
+    /// A deliberately different look for testing the popup (run with POLARIS_TEST_SETTINGS=1).
+    static let testPreset = ReaderSettings(
+        fontFamily: "serif",
+        fontSize: 22,
+        letterSpacing: 0.08,
+        lineSpacing: 2.0,
+        voice: "com.apple.voice.super-compact.en-GB.Daniel",
+        readingSpeed: 0.7,
+        readingLevel: "simple"
+    )
+
     var font: NSFont {
         let size = CGFloat(fontSize)
         switch fontFamily {

@@ -9,7 +9,9 @@ final class SettingsStore {
     private(set) var settings: ReaderSettings
 
     private init() {
-        if let data = UserDefaults.standard.data(forKey: Self.key),
+        if ProcessInfo.processInfo.environment["POLARIS_TEST_SETTINGS"] != nil {
+            settings = .testPreset
+        } else if let data = UserDefaults.standard.data(forKey: Self.key),
            let saved = try? JSONDecoder().decode(ReaderSettings.self, from: data) {
             settings = saved
         } else {
