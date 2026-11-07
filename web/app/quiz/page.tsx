@@ -1,4 +1,7 @@
-// Reading settings quiz: multiple-choice steps that end with suggested settings.
-export default function QuizPage() {
-  return null;
+import { auth } from "@/lib/auth";
+import Quiz from "./Quiz";
+
+export default async function QuizPage() {
+  const session = await auth();
+  return <Quiz isLoggedIn={!!session} />;
 }
