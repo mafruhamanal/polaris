@@ -93,6 +93,8 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
                 title={r.title ? String(r.title) : null}
                 conversation={Array.isArray(r.conversation) ? r.conversation : null}
                 readingStyle={readingStyle}
+                voice={settings.voice}
+                readingSpeed={settings.readingSpeed}
               />
             </li>
           ))}
