@@ -17,7 +17,10 @@ export async function POST(req: Request) {
   try {
     return Response.json(await ask(body));
   } catch (e) {
-    const message = e instanceof GeminiError ? e.message : "Something went wrong";
+    const message =
+      e instanceof GeminiError ? e.message
+      : e instanceof Error && e.name === "TimeoutError" ? "Gemini took too long to answer. Please try again."
+      : "Something went wrong";
     return Response.json({ error: message }, { status: 502 });
   }
 }

@@ -7,7 +7,7 @@
 //   streamText    — yields text chunks as they arrive (simplify / explain in the Mac popup)
 
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 const DEFAULT_TIMEOUT_MS = 20_000;
 
 export class GeminiError extends Error {
