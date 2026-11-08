@@ -237,21 +237,21 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
         <ProgressDots total={TOTAL_ROUNDS} current={TOTAL_ROUNDS} />
         <p className="text-xs text-center text-gray-400 font-medium uppercase tracking-wide">Reading voice</p>
         <h2 className="text-2xl font-bold text-center">Which voice sounds best?</h2>
-        <div className="space-y-2">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm space-y-2 p-3">
           {loadingVoices ? (
-            <p className="text-center text-gray-400">Loading voices…</p>
+            <p className="text-sm text-gray-400 py-2">Loading voices…</p>
           ) : elevenlabsVoices.length === 0 ? (
-            <p className="text-center text-gray-400">No voices available. You can skip this step.</p>
+            <p className="text-sm text-gray-400 py-2">No voices available. You can skip this step.</p>
           ) : (
             elevenlabsVoices.map((v) => (
               <div
                 key={v.voice_id}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  voice === v.voice_id ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:border-gray-300"
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                  voice === v.voice_id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
                 }`}
                 onClick={() => setVoice(v.voice_id)}
               >
-                <span className="flex-1 font-medium">{v.name}</span>
+                <span className="flex-1 text-sm font-medium">{v.name}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); playPreview(v.preview_url); }}
                   className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
