@@ -7,7 +7,7 @@ struct Screenshot {
     let image: CGImage
     /// Text recognized in the image, in reading order ("" if there's none).
     let text: String
-    /// Base64 JPEG (longest side at most 1600px) sent to the web app for Ask, Simplify and Write.
+    /// Base64 JPEG (longest side at most 1600px, under the web app's 3 MB limit) for Ask, Simplify and Write.
     let jpeg: String?
 
     enum Problem: LocalizedError {
@@ -38,7 +38,10 @@ struct Screenshot {
 
         guard let data = try? Data(contentsOf: url),
               let image = NSBitmapImageRep(data: data)?.cgImage else { return nil }
-        return Screenshot(image: image, text: await recognizeText(in: image), jpeg: jpegBase64(image))
+        // Shrink further if a busy, high-detail capture is still too big to upload.
+        let jpeg = [1600, 1200, 900].lazy.compactMap { jpegBase64(image, maxSide: CGFloat($0)) }
+            .first { $0.count < 3_000_000 }
+        return Screenshot(image: image, text: await recognizeText(in: image), jpeg: jpeg)
     }
 
     /// The text in `image`, lines joined into paragraphs (blank line where there's a bigger gap).

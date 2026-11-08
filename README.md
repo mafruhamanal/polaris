@@ -5,6 +5,8 @@ Select text anywhere on your Mac, draw a circle with the cursor, and get help re
 - `web/` — Next.js web app + API (quiz, saved responses, settings, auth)
 - `mac/` — Swift menu bar app (cursor gesture, popup, reader)
 
+Live web app: https://polaris-khaki-three.vercel.app (Vercel, root directory `web`, deploys from `main`).
+
 ## Roles
 - UI (quiz, saved responses): Lillian
 - Quiz research + logic: Aria
@@ -25,13 +27,13 @@ npm run dev                     # http://localhost:3000
 Quick test (polaris:// links can't reach it, so connect with ★ → Paste Connect Token):
 ```bash
 cd mac
-export POLARIS_API_URL=http://localhost:3000   # the web app (Ask, Simplify, settings, Connect)
+export POLARIS_API_URL=http://localhost:3000   # only to use a local web app; default is the deployed site
 swift run
 ```
 
 As a real app, so the web app's Connect page can open it with a polaris:// link:
 ```bash
-mac/scripts/build-app.sh --open    # builds mac/build/Polaris.app with POLARIS_API_URL, then opens it
+mac/scripts/build-app.sh --open    # builds mac/build/Polaris.app (uses the deployed site, or POLARIS_API_URL if set), then opens it
 ```
 Then ★ in the menu bar → Connect Account, sign in, and click **Open Polaris**. Turn on
 Polaris under System Settings → Privacy & Security → Accessibility (again after rebuilding,
