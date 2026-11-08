@@ -13,7 +13,7 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
 
   const [allRows, settingsRows, catalogs] = await Promise.all([
     db`
-      SELECT id, original_text, response, mode, source_app, source_url, created_at, title, catalog_id
+      SELECT id, original_text, response, mode, source_app, source_url, created_at, title, catalog_id, conversation
       FROM saved_responses
       WHERE user_id = ${userId}
       ORDER BY created_at DESC
@@ -87,6 +87,7 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
                 sourceUrl={r.source_url ? String(r.source_url) : null}
                 createdAt={String(r.created_at)}
                 title={r.title ? String(r.title) : null}
+                conversation={Array.isArray(r.conversation) ? r.conversation : null}
                 readingStyle={readingStyle}
               />
             </li>

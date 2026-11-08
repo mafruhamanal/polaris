@@ -6,7 +6,7 @@ export async function GET() {
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const rows = await db`
-    SELECT id, original_text, response, mode, source_app, source_url, source_window, created_at
+    SELECT id, original_text, response, mode, source_app, source_url, source_window, created_at, conversation
     FROM saved_responses
     WHERE user_id = ${userId}
     ORDER BY created_at DESC
