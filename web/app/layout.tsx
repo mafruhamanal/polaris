@@ -4,6 +4,7 @@ import { auth, signOut } from "@/lib/auth";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "Polaris",
@@ -19,6 +20,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@400;600&display=swap" rel="stylesheet" />
+        {/* Prevent flash of wrong theme on page load */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}` }} />
       </head>
       <body className="min-h-screen bg-space-deep text-star-white" style={{ fontFamily: "'Atkinson Hyperlegible', Verdana, sans-serif" }}>
         <header className="sticky top-0 z-10 bg-space-deep/90 backdrop-blur border-b border-nebula-teal/10">
@@ -36,7 +39,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </>
               )}
             </div>
-            <div className="ml-auto flex items-center">
+            <div className="ml-auto flex items-center gap-2">
+              <ThemeToggle />
               {session ? (
                 <UserMenu
                   email={session.user?.email ?? ""}

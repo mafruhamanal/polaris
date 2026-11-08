@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  /* Space background scale */
-  --color-space-deep:    #0d0f1e;
-  --color-space-mid:     #131629;
-  --color-space-light:   #1a1f38;
+  /* Space background scale — values driven by CSS vars for theme switching */
+  --color-space-deep:    var(--space-deep);
+  --color-space-mid:     var(--space-mid);
+  --color-space-light:   var(--space-light);
 
   /* Text */
-  --color-star-white:    #eef0ff;
-  --color-star-dim:      #8892b0;
+  --color-star-white:    var(--star-white);
+  --color-star-dim:      var(--star-dim);
 
   /* Accents */
-  --color-nebula-teal:   #64ffda;
-  --color-nebula-purple: #bd93f9;
-  --color-nebula-gold:   #ffb347;
+  --color-nebula-teal:   var(--accent);
+  --color-nebula-purple: var(--accent-soft);
+  --color-nebula-gold:   var(--accent-gold);
 
   /* Legacy — kept for reading preview surfaces */
   --color-peach:         #ffd9c2;
@@ -21,10 +21,34 @@
   --color-ink:           #1f2440;
   --color-ink-soft:      #4a4e66;
   --color-ember:         #d9572b;
-  --color-logo:          var(--color-nebula-teal);
+  --color-logo:          var(--accent);
 }
 
-/* Subtle star field — three overlapping dot grids at different densities */
+/* ── Dark mode (default) ───────────────────────────────────────── */
+:root {
+  --space-deep:   #0d0f1e;
+  --space-mid:    #131629;
+  --space-light:  #1a1f38;
+  --star-white:   #eef0ff;
+  --star-dim:     #8892b0;
+  --accent:       #bd93f9;   /* primary — lavender purple */
+  --accent-soft:  #d4b9ff;   /* lighter purple for secondary states */
+  --accent-gold:  #ffb347;
+}
+
+/* ── Light mode ────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --space-deep:   #fdf4ee;   /* warm cream page bg */
+  --space-mid:    #ffffff;   /* white card surface */
+  --space-light:  #f0e8df;   /* soft warm raised */
+  --star-white:   #1f2440;   /* ink — dark text */
+  --star-dim:     #4a4e66;   /* ink-soft — secondary text */
+  --accent:       #7c3aed;   /* vivid purple (7:1 on white) */
+  --accent-soft:  #a78bfa;   /* softer purple */
+  --accent-gold:  #d97706;   /* amber-600 */
+}
+
+/* ── Star field (dark mode only) ───────────────────────────────── */
 body::before {
   content: '';
   position: fixed;
@@ -33,13 +57,23 @@ body::before {
   z-index: 0;
   background-image:
     radial-gradient(circle, rgba(238,240,255,0.65) 1px, transparent 1px),
-    radial-gradient(circle, rgba(100,255,218,0.25) 1px, transparent 1px),
+    radial-gradient(circle, rgba(189,147,249,0.25) 1px, transparent 1px),
     radial-gradient(circle, rgba(238,240,255,0.35) 1px, transparent 1px);
   background-size: 320px 320px, 190px 190px, 130px 130px;
   background-position: 17px 44px, 73px 121px, 39px 88px;
+  transition: opacity 0.3s;
 }
 
-/* Ensure page content sits above star field */
+[data-theme="light"] body::before {
+  opacity: 0;
+}
+
+/* ── Smooth theme transition ───────────────────────────────────── */
+body, header {
+  transition: background-color 0.25s, color 0.25s;
+}
+
+/* ── Ensure page content sits above star field ─────────────────── */
 body > * {
   position: relative;
   z-index: 1;
