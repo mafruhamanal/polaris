@@ -233,33 +233,33 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "voice") {
     return (
-      <div className="max-w-lg mx-auto space-y-6 py-6">
+      <div className="max-w-2xl mx-auto space-y-8 py-6">
         <ProgressDots total={TOTAL_ROUNDS} current={TOTAL_ROUNDS} />
-        <p className="text-xs text-center text-star-dim font-medium uppercase tracking-wide">Reading preferences</p>
-        <h2 className="text-2xl font-bold text-center">Set up your reading experience</h2>
+        <p className="text-xl text-center text-star-dim font-medium uppercase tracking-wide">Reading preferences</p>
+        <h2 className="text-4xl font-bold text-center">Set up your reading experience</h2>
 
         {/* Voice */}
         <div className="bg-space-mid rounded-2xl border border-nebula-teal/10 shadow-sm divide-y divide-space-light">
-          <div className="px-5 py-3">
-            <p className="text-sm font-medium text-star-dim mb-2">Voice</p>
+          <div className="px-6 py-5">
+            <p className="text-xl font-medium text-star-dim mb-4">Voice</p>
             {loadingVoices ? (
-              <p className="text-sm text-star-dim py-1">Loading voices…</p>
+              <p className="text-xl text-star-dim py-1">Loading voices…</p>
             ) : elevenlabsVoices.length === 0 ? (
-              <p className="text-sm text-star-dim py-1">No voices available.</p>
+              <p className="text-xl text-star-dim py-1">No voices available.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {elevenlabsVoices.map((v) => (
                   <div
                     key={v.voice_id}
-                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                       voice === v.voice_id ? "border-nebula-teal bg-nebula-teal/10" : "border-space-light hover:border-nebula-teal/40"
                     }`}
                     onClick={() => setVoice(v.voice_id)}
                   >
-                    <span className={`flex-1 text-sm font-medium ${voice === v.voice_id ? "text-nebula-teal" : "text-star-white"}`}>{v.name}</span>
+                    <span className={`flex-1 text-xl font-medium ${voice === v.voice_id ? "text-nebula-teal" : "text-star-white"}`}>{v.name}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); playPreview(v.preview_url); }}
-                      className="text-sm text-nebula-teal hover:text-star-white px-3 py-1 rounded-lg bg-nebula-teal/10 hover:bg-nebula-teal/20 transition-colors"
+                      className="text-xl text-nebula-teal hover:text-star-white px-5 py-2 rounded-lg bg-nebula-teal/10 hover:bg-nebula-teal/20 transition-colors"
                     >
                       ▶ Play
                     </button>
@@ -270,12 +270,12 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
           </div>
 
           {/* Speed */}
-          <div className="px-5 py-3">
-            <p className="text-sm font-medium text-star-dim mb-3">Reading speed</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-star-dim">
+          <div className="px-6 py-5">
+            <p className="text-xl font-medium text-star-dim mb-4">Reading speed</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xl text-star-dim">
                 <span>0.5×</span>
-                <span className="text-lg font-bold text-nebula-teal">{speed === 1 ? "1× normal" : `${speed}×`}</span>
+                <span className="text-3xl font-bold text-nebula-teal">{speed === 1 ? "1× normal" : `${speed}×`}</span>
                 <span>2×</span>
               </div>
               <input
@@ -289,20 +289,20 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
                 className="w-full accent-nebula-teal"
               />
               {elevenlabsVoices.length > 0 && (
-                <p className="text-xs text-star-dim">Release to hear a sample at this speed</p>
+                <p className="text-lg text-star-dim">Release to hear a sample at this speed</p>
               )}
             </div>
           </div>
 
           {/* Reading level */}
-          <div className="px-5 py-3 space-y-2">
-            <p className="text-sm font-medium text-star-dim">Reading level</p>
-            <div className="flex gap-2">
+          <div className="px-6 py-5 space-y-4">
+            <p className="text-xl font-medium text-star-dim">Reading level</p>
+            <div className="flex gap-3">
               {(["simple", "standard", "advanced"] as const).map((l) => (
                 <button
                   key={l}
                   onClick={() => setReadingLevel(l)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium border-2 transition-all capitalize ${
+                  className={`px-6 py-3 rounded-lg text-xl font-medium border-2 transition-all capitalize ${
                     readingLevel === l ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-dim hover:border-nebula-teal/40 hover:text-star-white"
                   }`}
                 >
@@ -310,7 +310,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
                 </button>
               ))}
             </div>
-            <p className="text-sm text-star-dim">
+            <p className="text-xl text-star-dim">
               {readingLevel === "simple" && "Text is rewritten with short sentences and everyday words — easiest to read"}
               {readingLevel === "standard" && "Text is lightly simplified with clearer sentences — balanced and readable"}
               {readingLevel === "advanced" && "Text is shown as-is, with no changes — closest to the original source"}
@@ -320,7 +320,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         <button
           onClick={() => submitAnswers(voice, speed)}
-          className="w-full bg-nebula-teal text-space-deep py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+          className="w-full bg-nebula-teal text-space-deep py-5 rounded-xl text-2xl font-semibold hover:opacity-90 transition-opacity"
         >
           See my settings →
         </button>
