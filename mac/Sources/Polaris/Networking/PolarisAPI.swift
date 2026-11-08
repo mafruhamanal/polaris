@@ -129,6 +129,33 @@ enum PolarisAPI {
         return try JSONDecoder().decode(Speech.self, from: data)
     }
 
+    /// Saves an Ask session to Saved Responses (POST /api/save), or updates it with its latest turns
+    /// when `id` is the row from the first save (PATCH /api/saved/:id). Returns the row's id.
+    static func saveConversation(id: String?, selection: String, turns: [(question: String, answer: String)],
+                                 app: String?, window: String?) async throws -> String {
+        struct Turn: Encodable { let question: String; let answer: String }
+        let conversation = turns.map { Turn(question: $0.question, answer: $0.answer) }
+
+        if let id {
+            struct Update: Encodable { let conversation: [Turn] }
+            _ = try await send("api/saved/\(id)", method: "PATCH", body: try JSONEncoder().encode(Update(conversation: conversation)))
+            return id
+        }
+        struct New: Encodable {
+            let originalText: String
+            let response: String
+            let mode = "ask"
+            let conversation: [Turn]
+            let sourceApp: String?
+            let sourceWindow: String?
+        }
+        struct Saved: Decodable { let id: String }
+        let body = New(originalText: selection, response: conversation.first?.answer ?? "", conversation: conversation,
+                       sourceApp: app, sourceWindow: window)
+        let data = try await send("api/save", method: "POST", body: try JSONEncoder().encode(body))
+        return try JSONDecoder().decode(Saved.self, from: data).id
+    }
+
     /// How to say `text` aloud (POST /api/speech-prep): URLs and citations dropped, abbreviations spelled out.
     static func speechEdits(_ text: String) async throws -> [SpeechEdit] {
         struct Body: Encodable { let text: String }

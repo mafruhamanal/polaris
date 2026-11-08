@@ -56,3 +56,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS catalogs_user_name ON catalogs (user_id, lower
 ALTER TABLE saved_responses ADD COLUMN IF NOT EXISTS title TEXT;
 ALTER TABLE saved_responses ADD COLUMN IF NOT EXISTS catalog_id UUID REFERENCES catalogs(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS saved_responses_catalog ON saved_responses (catalog_id);
+
+-- Ask conversations: the whole chat of one session, as [{ "question": "...", "answer": "..." }, ...].
+-- `original_text` is the selected text and `response` the first answer, so a card can show the start.
+ALTER TABLE saved_responses ADD COLUMN IF NOT EXISTS conversation JSONB;
