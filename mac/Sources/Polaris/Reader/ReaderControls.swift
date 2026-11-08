@@ -1,5 +1,5 @@
-// Previous/next word arrows and play/pause for the reader, plus a spinner and "Getting voice
-// ready…" while the voice loads.
+// Previous/next word arrows and play/pause for the reader, plus a spinner and "Preparing
+// voice…" while the voice loads.
 import AppKit
 
 @MainActor
@@ -59,7 +59,7 @@ final class ReaderControls: NSView {
         playButton.toolTip = playing ? "Pause" : "Play"
     }
 
-    /// Spinner instead of the play icon, and "Getting voice ready…" (then "Almost ready…").
+    /// Spinner instead of the play icon, and "Preparing voice…" (then "Almost ready…").
     func setLoading(_ loading: Bool) {
         self.loading = loading
         almostReady?.invalidate()
@@ -68,7 +68,7 @@ final class ReaderControls: NSView {
             playButton.image = nil
             playButton.toolTip = "Cancel"
             spinner.show(in: playButton)
-            showStatus("Getting voice ready…")
+            showStatus("Preparing voice…")
             let timer = Timer(timeInterval: 3, repeats: false) { [weak self] _ in
                 Task { @MainActor in if self?.loading == true { self?.showStatus("Almost ready…") } }
             }

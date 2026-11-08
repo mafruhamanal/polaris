@@ -142,7 +142,7 @@ final class Popup {
 
         reader.onWord = { [weak self] range in self?.highlighter.highlight(range) }
         reader.onStateChange = { [weak self] playing in self?.controls.setPlaying(playing) }
-        // While the voice gets ready: spinner + "Getting voice ready…", and the first word pulses.
+        // While the voice gets ready: spinner + "Preparing voice…", and the first word pulses.
         reader.onLoading = { [weak self] range in
             guard let self else { return }
             self.controls.setLoading(range != nil)

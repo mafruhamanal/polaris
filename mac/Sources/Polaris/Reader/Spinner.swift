@@ -6,7 +6,7 @@ final class Spinner: NSProgressIndicator {
     override init(frame: NSRect) {
         super.init(frame: frame)
         style = .spinning
-        controlSize = .small
+        controlSize = .regular
         isDisplayedWhenStopped = false
     }
 
@@ -17,7 +17,8 @@ final class Spinner: NSProgressIndicator {
     /// Spins in the middle of `button` (whose icon the caller hides meanwhile).
     func show(in button: NSView) {
         if superview !== button { button.addSubview(self) }
-        frame = NSRect(x: (button.bounds.width - 16) / 2, y: (button.bounds.height - 16) / 2, width: 16, height: 16)
+        let side = min(20, button.bounds.width, button.bounds.height)
+        frame = NSRect(x: (button.bounds.width - side) / 2, y: (button.bounds.height - side) / 2, width: side, height: side)
         startAnimation(nil)
     }
 

@@ -100,7 +100,7 @@ final class WritePanel: NSView {
             guard let self else { return }
             if let range {
                 self.speakButton.image = nil
-                self.speakButton.toolTip = "Getting voice ready… (click to cancel)"
+                self.speakButton.toolTip = "Preparing voice… (click to cancel)"
                 self.spinner.show(in: self.speakButton)
                 self.highlighter.showPending(range)
             } else {
