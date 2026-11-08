@@ -1,4 +1,4 @@
-// Calls the web API (ask, settings) with the device token.
+// Calls the web API (ask, simplify, settings) with the device token.
 import Foundation
 
 struct AskResult: Decodable {
@@ -39,6 +39,16 @@ enum PolarisAPI {
                         history: history.map { Turn(question: $0.question, answer: $0.answer) })
         let data = try await send("api/ask", method: "POST", body: try JSONEncoder().encode(body))
         return try JSONDecoder().decode(AskResult.self, from: data)
+    }
+
+    /// The selection rewritten at the user's reading level (POST /api/simplify, which also saves it).
+    static func simplify(_ text: String, app: String?, title: String?) async throws -> String {
+        struct Context: Encodable { let app: String?; let title: String? }
+        struct Body: Encodable { let text: String; let mode = "simplify"; let context: Context }
+        struct Response: Decodable { let text: String }
+        let body = Body(text: text, context: Context(app: app, title: title))
+        let data = try await send("api/simplify", method: "POST", body: try JSONEncoder().encode(body))
+        return try JSONDecoder().decode(Response.self, from: data).text
     }
 
     static func settings() async throws -> ReaderSettings {

@@ -12,10 +12,6 @@ import ApplicationServices
     private var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if Config.apiKey.isEmpty {
-            print("⚠️  GEMINI_API_KEY isn't set, so Simplify won't work. Read aloud and Ask still do.")
-        }
-
         popup.onAction = { [weak self] action in self?.run(action) }
         popup.onBack = { [weak self] in self?.goBack() }
         popup.ask.onAsk = { [weak self] question in self?.ask(question) }
@@ -64,7 +60,7 @@ import ApplicationServices
             return nil
         }) { monitors.append(m) }
 
-        print("✅ Polaris running (model: \(Config.model)). Select text, then draw a quick circle with your cursor.")
+        print("✅ Polaris running (web app: \(Config.apiBaseURL.absoluteString)). Select text, then draw a quick circle with your cursor.")
     }
 
     private func dismiss() {
@@ -113,7 +109,7 @@ import ApplicationServices
         case .ask:
             popup.showAsk(context: context)
         case .simplify:
-            streamAI(selection, prompt: Config.simplifyPrompt(level: SettingsStore.shared.settings.readingLevel))
+            simplify(selection)
         }
     }
 
@@ -130,7 +126,7 @@ import ApplicationServices
             } catch is CancellationError {
             } catch let error as URLError where error.code == .cancelled {
             } catch let error as URLError where error.code == .cannotConnectToHost {
-                if !Task.isCancelled { self.popup.ask.showError("Can't reach the Polaris web app at \(Config.apiBaseURL.absoluteString). Is it running?", question: question) }
+                if !Task.isCancelled { self.popup.ask.showError(Self.cantReachWebApp, question: question) }
             } catch {
                 if !Task.isCancelled { self.popup.ask.showError(error.localizedDescription, question: question) }
             }
@@ -143,23 +139,28 @@ import ApplicationServices
         popup.backToMenu()
     }
 
-    private func streamAI(_ text: String, prompt: String) {
-        popup.showText("Thinking…", canGoBack: true)
+    /// Rewrites the selection at the user's reading level (the web app also saves it to their account).
+    private func simplify(_ text: String) {
+        popup.showText("Simplifying…", canGoBack: true)
+        let title = context?.pageTitle
+        let app = NSWorkspace.shared.frontmostApplication?.localizedName
         currentTask = Task { [weak self] in
             guard let self else { return }
-            var started = false
             do {
-                try await AI.stream(text, system: prompt) { chunk in
-                    if !started { started = true; self.popup.setText("") }
-                    self.popup.append(chunk)
-                }
-                if !started { self.popup.setText("(Empty response)") }
+                let result = try await PolarisAPI.simplify(text, app: app, title: title)
+                if !Task.isCancelled { self.popup.setText(result.isEmpty ? "(Empty response)" : result) }
             } catch is CancellationError {
             } catch let error as URLError where error.code == .cancelled {
+            } catch let error as URLError where error.code == .cannotConnectToHost {
+                if !Task.isCancelled { self.popup.setText("⚠️ \(Self.cantReachWebApp)") }
             } catch {
                 if !Task.isCancelled { self.popup.setText("⚠️ \(error.localizedDescription)") }
             }
         }
+    }
+
+    private static var cantReachWebApp: String {
+        "Can't reach the Polaris web app at \(Config.apiBaseURL.absoluteString). Is it running?"
     }
 
     // MARK: - polaris:// links

@@ -25,14 +25,13 @@ npm run dev                     # http://localhost:3000
 Quick test (polaris:// links can't reach it, so connect with ★ → Paste Connect Token):
 ```bash
 cd mac
-export GEMINI_API_KEY=...                      # Simplify; optional: GEMINI_MODEL=gemini-3.6-flash
-export POLARIS_API_URL=http://localhost:3000   # the web app (Ask, settings, Connect)
+export POLARIS_API_URL=http://localhost:3000   # the web app (Ask, Simplify, settings, Connect)
 swift run
 ```
 
 As a real app, so the web app's Connect page can open it with a polaris:// link:
 ```bash
-mac/scripts/build-app.sh --open    # builds mac/build/Polaris.app with the exports above, then opens it
+mac/scripts/build-app.sh --open    # builds mac/build/Polaris.app with POLARIS_API_URL, then opens it
 ```
 Then ★ in the menu bar → Connect Account, sign in, and click **Open Polaris**. Turn on
 Polaris under System Settings → Privacy & Security → Accessibility (again after rebuilding,

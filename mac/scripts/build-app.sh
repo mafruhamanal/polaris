@@ -2,9 +2,8 @@
 # Builds mac/build/Polaris.app so macOS can send polaris:// links (from the web app's
 # Connect page) to Polaris. Run from anywhere:  mac/scripts/build-app.sh [--open]
 #
-# GEMINI_API_KEY, GEMINI_MODEL and POLARIS_API_URL are copied from your shell into the
-# app's Info.plist (apps opened from Finder don't see your shell's exports). The app is
-# only in mac/build/, which git ignores, so the key never gets committed.
+# POLARIS_API_URL is copied from your shell into the app's Info.plist (apps opened from
+# Finder don't see your shell's exports). AI runs in the web app, so no Gemini key is needed here.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -18,7 +17,7 @@ cp "$BIN/Polaris" "$APP/Contents/MacOS/Polaris"
 cp -R Sources/Polaris/Resources/Fonts "$APP/Contents/Resources/Fonts"
 
 env_entries=""
-for name in GEMINI_API_KEY GEMINI_MODEL POLARIS_API_URL; do
+for name in POLARIS_API_URL; do
   value="${!name:-}"
   if [ -n "$value" ]; then
     env_entries+="    <key>$name</key><string>$value</string>"$'\n'
@@ -62,7 +61,6 @@ codesign --force --sign - -r='designated => identifier "app.polaris.mac"' "$APP"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP"
 
 echo "✅ Built $(pwd)/$APP"
-[ -z "${GEMINI_API_KEY:-}" ] && echo "⚠️  GEMINI_API_KEY wasn't set, so Simplify won't work in the app."
 if [ "${1:-}" = "--open" ]; then
   pkill -x Polaris 2>/dev/null || true
   open "$APP"

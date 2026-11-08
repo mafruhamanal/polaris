@@ -211,12 +211,6 @@ final class Popup {
         textView.scrollToBeginningOfDocument(nil)
     }
 
-    func append(_ s: String) {
-        text += s
-        textView.textStorage?.append(SettingsStore.shared.settings.styled(s))
-        textView.scrollToEndOfDocument(nil)
-    }
-
     // MARK: - Layout
 
     private func layoutContent(back: Bool, readerControls: Bool, size: NSSize? = nil) {
