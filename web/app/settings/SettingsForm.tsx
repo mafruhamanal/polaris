@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   type SavedSettings, type BackgroundId,
-  BACKGROUNDS, sanitizeSavedSettings, savedSettingsToStyle,
+  BACKGROUNDS, sanitizeSavedSettings, savedSettingsToTypographyStyle,
 } from "@/lib/settings";
 import { SAMPLE_TEXT } from "@/lib/quiz/questions";
 
@@ -42,6 +42,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
       .then((d) => setVoices(d.voices ?? []));
   }, []);
 
+
   function set<K extends keyof SavedSettings>(key: K, value: SavedSettings[K]) {
     setS((prev) => ({ ...prev, [key]: value }));
     setStatus("idle");
@@ -71,17 +72,32 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(sanitizeSavedSettings(s)),
     });
+    if (res.ok) {
+      const typography = savedSettingsToTypographyStyle(s);
+      document.documentElement.style.fontSize = `${s.fontSize}px`;
+      document.documentElement.style.setProperty('--ui-line-height', String(typography.lineHeight));
+      document.body.style.fontFamily = typography.fontFamily;
+      document.body.style.letterSpacing = typography.letterSpacing;
+      document.body.style.wordSpacing = typography.wordSpacing;
+    }
     setStatus(res.ok ? "saved" : "error");
   }
 
-  const style = savedSettingsToStyle(s);
+  // Live typography for preview — no explicit fontSize so it inherits from <html>
+  // and renders at the same scale as the rest of the UI (zoom: 1.5 cancels the page's zoom: 2/3).
+  const previewStyle: React.CSSProperties = {
+    fontFamily: savedSettingsToTypographyStyle(s).fontFamily,
+    letterSpacing: `${s.letterSpacing}em`,
+    wordSpacing: `${s.wordSpacing}em`,
+    lineHeight: s.lineSpacing,
+  };
 
   return (
     <div className="space-y-6">
       {/* Live preview */}
-      <div>
-        <p className="text-xl font-medium text-star-white uppercase tracking-wide mb-3" style={{ zoom: 1.5 }}>Preview</p>
-        <div style={style} className="rounded-2xl p-8 shadow-sm transition-all duration-300">
+      <div style={{ zoom: 1.5 }}>
+        <p className="text-xl font-medium text-star-white uppercase tracking-wide mb-3">Preview</p>
+        <div style={previewStyle} className="rounded-2xl p-8 bg-space-mid border border-space-light text-star-white transition-all duration-300">
           <p>{SAMPLE_TEXT}</p>
         </div>
       </div>
@@ -102,7 +118,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
         {/* Font size */}
         <div className="flex items-center gap-6 px-6 py-5">
           <label className="w-52 text-xl font-medium text-star-white shrink-0">Text size</label>
-          <input type="range" min={24} max={64} step={2} value={s.fontSize}
+          <input type="range" min={10} max={36} step={1} value={s.fontSize}
             onChange={(e) => set("fontSize", Number(e.target.value))}
             className="flex-1 accent-nebula-teal" />
           <span className="text-xl text-star-white w-20 text-right">{s.fontSize}px</span>
