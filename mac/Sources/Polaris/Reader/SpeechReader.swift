@@ -23,6 +23,16 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
     /// Set when ElevenLabs failed for the current text, so it keeps using a Mac voice.
     private var macVoiceOnly = false
 
+    // What is actually spoken: `text` with URLs/citations dropped and abbreviations spelled out
+    // (see prepare()). Everything on screen still uses `text`; these map its words to the spoken one.
+    private var spoken: NSString = ""
+    /// Where each of `words` starts in `spoken`, and whether it is skipped (not spoken at all).
+    private var spokenStarts: [Int] = []
+    private var skipped: [Bool] = []
+    /// Whether `spoken` has been prepared for the current text, and the request that does it.
+    private var prepared = false
+    private var prep: Task<Void, Never>?
+
     /// Called with the range of the current word, or nil when reading stops.
     var onWord: ((NSRange?) -> Void)?
     var onStateChange: ((Bool) -> Void)?
@@ -61,6 +71,10 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
             needsRestart = true
         }
         guard !words.isEmpty else { return }
+        if prepared { startPlayback() } else { prepare() }
+    }
+
+    private func startPlayback() {
         if usesElevenLabs { playElevenLabs(); return }
         if synth.isPaused && !needsRestart {
             synth.continueSpeaking()
@@ -70,7 +84,31 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         }
     }
 
+    /// Asks the web app how to say the text aloud, then starts reading. Text with nothing to fix comes
+    /// back untouched, and if the app is offline or the request fails we simply read the text as it is.
+    private func prepare() {
+        guard prep == nil else { return }
+        guard AccountLink.isConnected else {
+            prepared = true
+            startPlayback()
+            return
+        }
+        // Show "playing" while we wait, like the ElevenLabs download.
+        setPlaying(true)
+        let requested = text
+        prep = Task { [weak self] in
+            let edits = (try? await PolarisAPI.speechEdits(requested as String)) ?? []
+            guard let self, !Task.isCancelled, self.text == requested else { return }
+            self.prep = nil
+            self.applyEdits(edits)
+            self.prepared = true
+            self.startPlayback()
+        }
+    }
+
     func pause() {
+        prep?.cancel()
+        prep = nil
         fetch?.cancel()
         fetch = nil
         player?.pause()
@@ -80,6 +118,8 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
     }
 
     func stop() {
+        prep?.cancel()
+        prep = nil
         fetch?.cancel()
         fetch = nil
         player?.stop()
@@ -100,7 +140,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         if let player, index < wordTimes.count {
             player.currentTime = wordTimes[index]
             onWord?(words[index])
-        } else if isPlaying && !usesElevenLabs {
+        } else if isPlaying && !usesElevenLabs && prepared {
             speak(from: index)
         } else {
             utterance = nil
@@ -121,6 +161,51 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         index = grew ? min(index, max(words.count - 1, 0)) : 0
         macVoiceOnly = false
         dropAudio()
+        prep?.cancel()
+        prep = nil
+        prepared = false
+        applyEdits([])
+    }
+
+    /// Builds the spoken text: `text` with each edit's range replaced, and for every word on screen
+    /// where it starts in that spoken text. Words inside an edit all start where the edit does.
+    private func applyEdits(_ edits: [SpeechEdit]) {
+        var out = ""
+        var cursor = 0
+        // For each edit: its range in `text`, where its replacement starts in `spoken`,
+        // how much longer it makes the text, and whether it is read at all.
+        var marks: [(range: NSRange, spokenStart: Int, growth: Int, skipped: Bool)] = []
+        for e in edits.sorted(by: { $0.start < $1.start }) {
+            guard e.start >= cursor, e.end > e.start, e.end <= text.length else { continue }
+            out += text.substring(with: NSRange(location: cursor, length: e.start - cursor))
+            let start = (out as NSString).length
+            out += e.spoken
+            let length = (out as NSString).length - start
+            let isSkipped = e.spoken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            marks.append((NSRange(location: e.start, length: e.end - e.start), start, length - (e.end - e.start), isSkipped))
+            cursor = e.end
+        }
+        out += text.substring(from: cursor)
+        spoken = out as NSString
+
+        // Words are in order, so each mark is passed once.
+        var m = 0
+        var shift = 0 // how much longer (or shorter) `spoken` is than `text` before this word
+        spokenStarts = []
+        skipped = []
+        for w in words {
+            while m < marks.count, NSMaxRange(marks[m].range) <= w.location {
+                shift += marks[m].growth
+                m += 1
+            }
+            if m < marks.count, marks[m].range.location <= w.location {
+                spokenStarts.append(marks[m].spokenStart)
+                skipped.append(marks[m].skipped)
+            } else {
+                spokenStarts.append(w.location + shift)
+                skipped.append(false)
+            }
+        }
     }
 
     // MARK: - Mac voices
@@ -130,8 +215,10 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         synth.stopSpeaking(at: .immediate)
         guard i < words.count else { return }
         index = i
-        utteranceOffset = words[i].location
-        let u = AVSpeechUtterance(string: text.substring(from: utteranceOffset))
+        utteranceOffset = spokenStarts[i]
+        let rest = spoken.substring(from: utteranceOffset)
+        guard !rest.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { finished(); return }
+        let u = AVSpeechUtterance(string: rest)
         u.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                      max(AVSpeechUtteranceMinimumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * rate))
         if let id = voiceIdentifier { u.voice = Self.voice(id) }
@@ -168,9 +255,10 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         // Show "playing" while the audio downloads; the first word lights up when it starts.
         setPlaying(true)
         let requested = text
+        let toSpeak = spoken as String
         fetch = Task { [weak self] in
             do {
-                let speech = try await PolarisAPI.speak(requested as String, voiceId: voice)
+                let speech = try await PolarisAPI.speak(toSpeak, voiceId: voice)
                 guard let self, !Task.isCancelled, self.text == requested else { return }
                 self.fetch = nil
                 try self.startAudio(speech)
@@ -194,7 +282,8 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         player.rate = Self.playerRate(rate)
         player.prepareToPlay()
         self.player = player
-        wordTimes = Self.times(for: words, from: speech.words)
+        wordTimes = Self.times(forSpokenStarts: spokenStarts, from: speech.charTimes,
+                               textLength: spoken.length, duration: player.duration)
         needsRestart = false
         if index < wordTimes.count { player.currentTime = wordTimes[index] }
         player.play()
@@ -202,12 +291,18 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         onWord?(words[index])
     }
 
-    /// Start time for each of our words: the time of the last server word starting at or before it.
-    private static func times(for words: [NSRange], from timed: [Speech.Word]) -> [TimeInterval] {
-        var j = 0
-        return words.map { w in
-            while j + 1 < timed.count && timed[j + 1].offset <= w.location { j += 1 }
-            return timed.isEmpty ? 0 : timed[j].time
+    /// Start time for each of our words, given where it starts in the spoken text. Never goes
+    /// backwards, so the highlight can't jump back to an earlier word.
+    /// Without timings from the server, spreads the words evenly over the audio.
+    private static func times(forSpokenStarts starts: [Int], from charTimes: [Double],
+                              textLength: Int, duration: TimeInterval) -> [TimeInterval] {
+        guard !charTimes.isEmpty else {
+            return starts.map { duration * Double($0) / Double(max(1, textLength)) }
+        }
+        var latest: TimeInterval = 0
+        return starts.map { start in
+            latest = max(latest, charTimes[max(0, min(start, charTimes.count - 1))])
+            return latest
         }
     }
 
@@ -259,11 +354,13 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
 
     private func spoke(_ range: NSRange, in u: AVSpeechUtterance) {
         guard u === utterance else { return }
-        let loc = range.location + utteranceOffset
-        if let i = words.firstIndex(where: { NSMaxRange($0) > loc }) {
-            index = i
-            onWord?(words[i])
-        }
+        let loc = range.location + utteranceOffset // in `spoken`
+        // The last word that starts at or before it, moved back to the first word of an edit
+        // that spans several (so "$1.2M" lights up as one while "1.2 million dollars" is said).
+        guard let last = words.indices.last(where: { !skipped[$0] && spokenStarts[$0] <= loc }) else { return }
+        let i = words.indices.first { !skipped[$0] && spokenStarts[$0] == spokenStarts[last] } ?? last
+        index = i
+        onWord?(words[i])
     }
 
     private func finished() {
