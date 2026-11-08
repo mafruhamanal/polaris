@@ -17,6 +17,16 @@
   --color-logo:          var(--accent);
 }
 
+/* Applied after Tailwind utilities (same specificity, later source = wins).
+   Inline styles on the reading preview still override this correctly. */
+:root {
+  --ui-line-height: normal;
+}
+
+:root * {
+  line-height: var(--ui-line-height);
+}
+
 :root {
   --space-deep:   #0d0f1e;
   --space-mid:    #131629;

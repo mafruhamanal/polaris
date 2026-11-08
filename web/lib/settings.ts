@@ -64,7 +64,7 @@ export const BACKGROUNDS: Record<BackgroundId, { label: string; bg: string; text
 
 
 export const LIMITS = {
-  fontSizePx: { min: 14, max: 32 },
+  fontSizePx: { min: 10, max: 36 },
   letterSpacingEm: { min: 0, max: 0.35 },
   wordSpacingEm: { min: 0, max: 0.5 },
   lineSpacing: { min: 1.1, max: 2.5 },
@@ -207,6 +207,16 @@ const SAVED_FONT_MAP: Record<string, string> = {
   Arial: "Arial, sans-serif",
 };
 
+/** CSS typography properties only (no background/color) — suitable for applying globally to <body>. */
+export function savedSettingsToTypographyStyle(s: SavedSettings): { fontFamily: string; letterSpacing: string; wordSpacing: string; lineHeight: number; } {
+  return {
+    fontFamily: SAVED_FONT_MAP[s.fontFamily] ?? s.fontFamily,
+    letterSpacing: `${s.letterSpacing}em`,
+    wordSpacing: `${s.wordSpacing}em`,
+    lineHeight: s.lineSpacing,
+  };
+}
+
 /** CSS for rendering text in the user's SavedSettings (saved page, layout body, settings preview). */
 export function savedSettingsToStyle(s: SavedSettings): React.CSSProperties {
   const bg = BACKGROUNDS[s.background as BackgroundId] ?? BACKGROUNDS.white;
@@ -232,7 +242,7 @@ export function sanitizeSavedSettings(input: unknown): SavedSettings {
     typeof v === "number" && Number.isFinite(v) ? +clamp(v, min, max).toFixed(3) : fallback;
   return {
     fontFamily: typeof o.fontFamily === "string" && o.fontFamily.trim() && o.fontFamily.length < 100 ? o.fontFamily.trim() : d.fontFamily,
-    fontSize: num(o.fontSize, 10, 40, d.fontSize),
+    fontSize: num(o.fontSize, 10, 36, d.fontSize),
     letterSpacing: num(o.letterSpacing, 0, 0.5, d.letterSpacing),
     wordSpacing: num(o.wordSpacing, 0, 0.5, d.wordSpacing),
     lineSpacing: num(o.lineSpacing, 1, 3, d.lineSpacing),
