@@ -142,7 +142,7 @@ final class AskPanel: NSView {
 
     /// Adds a Simplify result to the conversation (keeping the current suggestions).
     func showSimplified(_ text: String) {
-        show(AskResult(inScope: true, answer: text, fromText: true, evidence: [], suggestions: []),
+        show(AskResult(inScope: true, answer: text, suggestions: []),
              for: Self.simplifyQuestion)
     }
 
@@ -163,9 +163,6 @@ final class AskPanel: NSView {
             let answer = Self.answerText(turn.result)
             answerRange = NSRange(location: body.length, length: (answer as NSString).length)
             body.append(settings.styled(answer))
-            if turn.result.inScope && !turn.result.fromText {
-                body.append(label("\nNot in the text — general explanation."))
-            }
         }
         if let pending {
             if !turns.isEmpty { body.append(gap()) }
