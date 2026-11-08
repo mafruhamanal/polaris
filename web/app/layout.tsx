@@ -22,10 +22,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-screen bg-peach text-ink" style={{ fontFamily: "'Atkinson Hyperlegible', Verdana, sans-serif" }}>
         <header className="sticky top-0 z-10 bg-peach/90 backdrop-blur border-b border-ink/10">
           <nav className="max-w-4xl mx-auto px-12 h-32 flex items-center gap-12">
-            <Link href="/" className="inline-block shrink-0">
+            <Link href="/" className="inline-block shrink-0 mr-auto">
               <Logo className="text-5xl" />
             </Link>
-            <div className="flex items-center gap-2 text-base font-medium text-ink-soft">
+            <div className="flex items-center gap-2 text-2xl font-medium text-ink-soft">
               <Link href="/quiz" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Quiz</Link>
               {session && (
                 <>
@@ -35,7 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </>
               )}
             </div>
-            <div className="ml-auto flex items-center gap-6 text-base">
+            <div className="flex items-center gap-6 text-2xl">
               {session ? (
                 <>
                   <span className="text-ink-soft hidden sm:block truncate max-w-[240px]">{session.user?.email}</span>
