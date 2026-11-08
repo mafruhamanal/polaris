@@ -17,7 +17,7 @@ const SCHEMA: GeminiSchema = {
 export async function define(word: string, sentence: string): Promise<string> {
   const prompt = `WORD: ${word.slice(0, 60).trim()}\n\nSENTENCE: ${sentence.slice(0, 1_000).trim()}`;
   const result = await generateJSON<{ meaning?: string }>({
-    system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.2, maxOutputTokens: 200, timeoutMs: 12_000,
+    system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.2, timeoutMs: 12_000,
   });
   return (result.meaning ?? "").trim();
 }
