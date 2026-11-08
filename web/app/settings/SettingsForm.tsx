@@ -101,10 +101,10 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
         {/* Font size */}
         <div className="flex items-center gap-6 px-6 py-5">
           <label className="w-52 text-xl font-medium text-star-white shrink-0">Text size</label>
-          <input type="range" min={12} max={32} step={1} value={s.fontSize}
+          <input type="range" min={24} max={64} step={2} value={s.fontSize}
             onChange={(e) => set("fontSize", Number(e.target.value))}
             className="flex-1 accent-nebula-teal" />
-          <span className="text-xl text-star-white w-16 text-right">{s.fontSize}px</span>
+          <span className="text-xl text-star-white w-20 text-right">{s.fontSize}px</span>
         </div>
 
         {/* Letter spacing */}
