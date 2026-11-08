@@ -15,6 +15,7 @@ import ApplicationServices
         popup.onAction = { [weak self] action in self?.run(action) }
         popup.onBack = { [weak self] in self?.goBack() }
         popup.ask.onAsk = { [weak self] question in self?.ask(question) }
+        popup.ask.onSimplify = { [weak self] in self?.simplify() }
         FontLoader.registerBundledFonts()
         setUpMenuBar()
         Task { await SettingsStore.shared.refresh() }
@@ -108,21 +109,37 @@ import ApplicationServices
             popup.showReader(selection)
         case .ask:
             popup.showAsk(context: context)
-        case .simplify:
-            simplify(selection)
         }
     }
 
     private func ask(_ question: String) {
         guard let context else { return }
-        currentTask?.cancel()
         let history = popup.ask.history
+        inAsk(question) { try await PolarisAPI.ask(question, context: context, history: history) } show: { result in
+            self.popup.ask.show(result, for: question)
+        }
+    }
+
+    /// Rewrites the selection at the user's reading level, as a turn in the Ask conversation
+    /// (the web app also saves it to their account).
+    private func simplify() {
+        guard let selection else { return }
+        let title = context?.pageTitle
+        let app = NSWorkspace.shared.frontmostApplication?.localizedName
+        inAsk(AskPanel.simplifyQuestion) { try await PolarisAPI.simplify(selection, app: app, title: title) } show: { text in
+            self.popup.ask.showSimplified(text.isEmpty ? "(Empty response)" : text)
+        }
+    }
+
+    /// Shows `question` as loading in the Ask view, runs `work`, then shows its result or the error.
+    private func inAsk<T>(_ question: String, _ work: @escaping () async throws -> T, show: @escaping (T) -> Void) {
+        currentTask?.cancel()
         popup.ask.showLoading(question)
         currentTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let result = try await PolarisAPI.ask(question, context: context, history: history)
-                if !Task.isCancelled { self.popup.ask.show(result, for: question) }
+                let result = try await work()
+                if !Task.isCancelled { show(result) }
             } catch is CancellationError {
             } catch let error as URLError where error.code == .cancelled {
             } catch let error as URLError where error.code == .cannotConnectToHost {
@@ -137,26 +154,6 @@ import ApplicationServices
         currentTask?.cancel()
         currentTask = nil
         popup.backToMenu()
-    }
-
-    /// Rewrites the selection at the user's reading level (the web app also saves it to their account).
-    private func simplify(_ text: String) {
-        popup.showText("Simplifying…", canGoBack: true)
-        let title = context?.pageTitle
-        let app = NSWorkspace.shared.frontmostApplication?.localizedName
-        currentTask = Task { [weak self] in
-            guard let self else { return }
-            do {
-                let result = try await PolarisAPI.simplify(text, app: app, title: title)
-                if !Task.isCancelled { self.popup.setText(result.isEmpty ? "(Empty response)" : result) }
-            } catch is CancellationError {
-            } catch let error as URLError where error.code == .cancelled {
-            } catch let error as URLError where error.code == .cannotConnectToHost {
-                if !Task.isCancelled { self.popup.setText("⚠️ \(Self.cantReachWebApp)") }
-            } catch {
-                if !Task.isCancelled { self.popup.setText("⚠️ \(error.localizedDescription)") }
-            }
-        }
     }
 
     private static var cantReachWebApp: String {

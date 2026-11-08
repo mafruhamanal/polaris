@@ -6,14 +6,21 @@ final class FloatingPanel: NSPanel {
 }
 
 enum PopupAction {
-    case read, ask, simplify
+    case read, ask
 }
 
 @MainActor
 final class Popup {
     private let circleSize: CGFloat = 52
     private let circleSpacing: CGFloat = 14
-    private var menuSize: NSSize { NSSize(width: circleSize * 3 + circleSpacing * 2, height: circleSize) }
+    private let menuButtons: [(String, String, PopupAction)] = [
+        ("Read aloud", "speaker.wave.2.fill", .read),
+        ("Ask or simplify", "questionmark.bubble", .ask),
+    ]
+    private var menuSize: NSSize {
+        let n = CGFloat(menuButtons.count)
+        return NSSize(width: circleSize * n + circleSpacing * (n - 1), height: circleSize)
+    }
     private let contentSize = NSSize(width: 420, height: 320)
     /// Ask grows with the reading font so big text still has room (place() keeps it on screen).
     private var askSize: NSSize {
@@ -92,9 +99,9 @@ final class Popup {
         backButton.imagePosition = .imageOnly
         backButton.bezelStyle = .regularSquare
         backButton.isBordered = false
-        backButton.toolTip = "Back to the three icons (Delete)"
+        backButton.toolTip = "Back to the icons (Delete)"
 
-        // The rounded background only shows behind text; the menu is just three floating circles.
+        // The rounded background only shows behind text; the menu is just floating circles.
         let container = NSView(frame: rect)
         container.addSubview(effect)
         container.addSubview(menu)
@@ -108,12 +115,7 @@ final class Popup {
         backButton.target = self
         backButton.action = #selector(backTapped)
 
-        let buttons: [(String, String, PopupAction)] = [
-            ("Read aloud", "speaker.wave.2.fill", .read),
-            ("Ask", "questionmark.bubble", .ask),
-            ("Simplify", "wand.and.stars", .simplify),
-        ]
-        for (i, (title, symbol, action)) in buttons.enumerated() {
+        for (i, (title, symbol, action)) in menuButtons.enumerated() {
             let button = CircleButton(title: title, symbol: symbol, diameter: circleSize) { [weak self] in
                 self?.onAction?(action)
             }
@@ -163,7 +165,7 @@ final class Popup {
     /// True while the user is typing in a text box (so Space, arrows and Delete type normally).
     var isTyping: Bool { (panel.firstResponder as? NSTextView)?.isFieldEditor == true }
 
-    /// Returns to the three circles where they were.
+    /// Returns to the menu circles where they were.
     func backToMenu() { showMenu(near: anchor) }
 
     /// Plain text (a status message or an AI response), no reader controls.

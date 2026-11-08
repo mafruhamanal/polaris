@@ -1,13 +1,18 @@
-// Ask view in the popup: a conversation about the selection. Question box, suggestion chips,
-// and each answer with the sentences it came from, all in the user's reading settings.
+// Ask view in the popup: a conversation about the selection. Question box, suggestion chips
+// (led by a highlighted Simplify chip), and each answer with the sentences it came from,
+// all in the user's reading settings.
 import AppKit
 
 @MainActor
 final class AskPanel: NSView {
     static let starters = ["What does this mean?", "Explain the hard words", "Sum it up in one sentence"]
+    /// The turn's "question" for a Simplify result (also what follow-ups see in the history).
+    static let simplifyQuestion = "Simplify this text"
 
     /// Called with the question when the user presses Return, clicks send, or taps a chip.
     var onAsk: ((String) -> Void)?
+    /// Called when the user taps the Simplify chip.
+    var onSimplify: (() -> Void)?
 
     /// Earlier questions and answers, sent with each new question so follow-ups make sense.
     var history: [(question: String, answer: String)] {
@@ -96,13 +101,13 @@ final class AskPanel: NSView {
         stop()
         field.isEnabled = false
         field.stringValue = ""
-        render(pending: question, status: "Thinking…")
-        setSuggestions([])
+        render(pending: question, status: question == Self.simplifyQuestion ? "Simplifying…" : "Thinking…")
+        setSuggestions([], simplify: false)
     }
 
     func showError(_ message: String, question: String? = nil) {
         field.isEnabled = true
-        if let question { field.stringValue = question }
+        if let question, question != Self.simplifyQuestion { field.stringValue = question }
         render(pending: question, status: "⚠️ " + message)
         setSuggestions(suggestions.isEmpty ? Self.starters : suggestions)
         focusField()
@@ -112,8 +117,14 @@ final class AskPanel: NSView {
         turns.append((question, result))
         field.isEnabled = true
         render()
-        setSuggestions(result.suggestions.isEmpty ? Self.starters : result.suggestions)
+        setSuggestions(result.suggestions.isEmpty ? (suggestions.isEmpty ? Self.starters : suggestions) : result.suggestions)
         focusField()
+    }
+
+    /// Adds a Simplify result to the conversation (keeping the current suggestions).
+    func showSimplified(_ text: String) {
+        show(AskResult(inScope: true, answer: text, fromText: true, evidence: [], suggestions: []),
+             for: Self.simplifyQuestion)
     }
 
     func stop() { reader.stop() }
@@ -129,7 +140,7 @@ final class AskPanel: NSView {
         for (i, turn) in turns.enumerated() {
             if i > 0 { body.append(gap()) }
             lastTurnStart = body.length
-            body.append(label("You asked: " + turn.question + "\n"))
+            body.append(label(heading(turn.question)))
             let answer = Self.answerText(turn.result)
             answerRange = NSRange(location: body.length, length: (answer as NSString).length)
             body.append(settings.styled(answer))
@@ -144,7 +155,7 @@ final class AskPanel: NSView {
         if let pending {
             if !turns.isEmpty { body.append(gap()) }
             lastTurnStart = body.length
-            body.append(label("You asked: " + pending + "\n"))
+            body.append(label(heading(pending)))
         }
         if let status {
             body.append(settings.styled(status))
@@ -160,6 +171,10 @@ final class AskPanel: NSView {
             let rect = lm.boundingRect(forGlyphRange: glyphs, in: tc)
             textView.scroll(NSPoint(x: 0, y: max(0, rect.minY)))
         }
+    }
+
+    private func heading(_ question: String) -> String {
+        question == Self.simplifyQuestion ? "Simpler version:\n" : "You asked: " + question + "\n"
     }
 
     private static func answerText(_ result: AskResult) -> String {
@@ -218,11 +233,13 @@ final class AskPanel: NSView {
         needsLayout = true
     }
 
-    /// Chips use the reading font, size, and letter/word spacing (one line each).
-    private func setSuggestions(_ list: [String]) {
-        suggestions = list
+    /// Chips use the reading font, size, and letter/word spacing. `simplify` puts the
+    /// highlighted Simplify chip first.
+    private func setSuggestions(_ list: [String], simplify: Bool = true) {
+        if !list.isEmpty { suggestions = list }
         chips.subviews.forEach { $0.removeFromSuperview() }
         let color = settings.textColor
+        if simplify { chips.addSubview(simplifyChip()) }
         for title in list {
             let chip = FirstClickButton(title: title, target: self, action: #selector(chipTapped(_:)))
             chip.isBordered = false
@@ -242,6 +259,26 @@ final class AskPanel: NSView {
         }
         needsLayout = true
         layoutSubtreeIfNeeded()
+    }
+
+    /// Filled with the accent color and a wand icon so it stands out from the questions.
+    private func simplifyChip() -> NSButton {
+        let chip = FirstClickButton(title: "", target: self, action: #selector(simplifyTapped))
+        chip.isBordered = false
+        chip.image = NSImage(systemSymbolName: "wand.and.stars", accessibilityDescription: nil)?
+            .withSymbolConfiguration(.init(pointSize: CGFloat(settings.fontSize) * 0.8, weight: .semibold))
+        chip.imagePosition = .imageLeading
+        chip.contentTintColor = .white
+        let styled = NSMutableAttributedString(attributedString: settings.styled(" Simplify"))
+        let whole = NSRange(location: 0, length: styled.length)
+        styled.removeAttribute(.paragraphStyle, range: whole)
+        styled.addAttribute(.foregroundColor, value: NSColor.white, range: whole)
+        chip.attributedTitle = styled
+        chip.toolTip = "Rewrite the selection at your reading level"
+        chip.wantsLayer = true
+        chip.layer?.cornerRadius = chipHeight / 2
+        chip.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
+        return chip
     }
 
     private var lineHeight: CGFloat {
@@ -275,6 +312,11 @@ final class AskPanel: NSView {
         guard field.isEnabled else { return }
         field.stringValue = sender.attributedTitle.string
         submit()
+    }
+
+    @objc private func simplifyTapped() {
+        guard field.isEnabled else { return }
+        onSimplify?()
     }
 
     @objc private func speak() {
