@@ -1,6 +1,6 @@
 # Polaris
 
-Select text anywhere on your Mac, draw a circle with the cursor, and get help reading it.
+Select text anywhere on your Mac, circle the cursor around three times, and get help reading it.
 
 - `web/` — Next.js web app + API (quiz, saved responses, settings, auth)
 - `mac/` — Swift menu bar app (cursor gesture, popup, reader)
