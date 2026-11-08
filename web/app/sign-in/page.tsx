@@ -3,13 +3,13 @@ import { Logo } from "@/components/Logo";
 
 export default function SignInPage() {
   return (
-    <main className="min-h-screen bg-peach flex items-center justify-center">
-      <div className="bg-white rounded-3xl shadow-lg px-12 py-14 flex flex-col items-center gap-8 w-full max-w-md">
+    <main className="min-h-screen bg-space-deep flex items-center justify-center">
+      <div className="bg-space-mid border border-nebula-teal/10 rounded-3xl shadow-lg shadow-nebula-teal/5 px-12 py-14 flex flex-col items-center gap-8 w-full max-w-md">
         <Logo className="text-4xl" />
 
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-ink">Welcome back</h1>
-          <p className="text-ink-soft">Sign in to access your reading settings and saved responses.</p>
+          <h1 className="text-2xl font-bold text-star-white">Welcome back</h1>
+          <p className="text-star-white">Sign in to access your reading settings and saved responses.</p>
         </div>
 
         <form
@@ -21,7 +21,7 @@ export default function SignInPage() {
         >
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-3 bg-ink text-peach font-semibold text-lg px-6 py-4 rounded-2xl hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center gap-3 bg-nebula-teal text-space-deep font-semibold text-lg px-6 py-4 rounded-2xl hover:opacity-90 transition-opacity"
           >
             <svg viewBox="0 0 24 24" className="w-6 h-6" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

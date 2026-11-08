@@ -31,11 +31,11 @@ export default async function SettingsPage() {
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your settings</h1>
-        <Link href="/quiz" className="text-sm text-blue-600 font-medium hover:underline">Retake quiz →</Link>
+        <Link href="/quiz" className="text-sm text-nebula-teal font-medium hover:underline">Retake quiz →</Link>
       </div>
 
       {!hasSettings && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 text-sm text-amber-800">
+        <div className="bg-nebula-gold/10 border border-nebula-gold/30 rounded-xl px-5 py-4 text-sm text-nebula-gold">
           You haven&apos;t taken the quiz yet — these are the defaults.{" "}
           <Link href="/quiz" className="font-semibold underline">Take the quiz</Link> to find your best settings.
         </div>
