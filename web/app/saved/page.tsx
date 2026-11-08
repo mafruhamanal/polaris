@@ -2,7 +2,7 @@ import type React from "react";
 import { redirect } from "next/navigation";
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
-import { SAVED_DEFAULTS, savedSettingsToStyle, type BackgroundId, type SavedSettings } from "@/lib/settings";
+import { SAVED_DEFAULTS, resolveFont, savedSettingsToStyle, type BackgroundId, type SavedSettings } from "@/lib/settings";
 import SavedItemCard from "@/components/saved/SavedItemCard";
 import CatalogBar from "@/components/saved/CatalogBar";
 import { listCatalogs } from "@/lib/catalogs";
@@ -34,7 +34,7 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
   const unsorted = allRows.filter((r) => !r.catalog_id).length;
 
   const settings: SavedSettings = settingsRows.length > 0 ? {
-    fontFamily: settingsRows[0].font_family,
+    fontFamily: resolveFont(settingsRows[0].font_family),
     fontSize: settingsRows[0].font_size,
     letterSpacing: settingsRows[0].letter_spacing,
     wordSpacing: settingsRows[0].word_spacing,

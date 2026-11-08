@@ -1,6 +1,6 @@
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
-import { SAVED_DEFAULTS, sanitizeSavedSettings, type SavedSettings } from "@/lib/settings";
+import { SAVED_DEFAULTS, resolveFont, sanitizeSavedSettings, type SavedSettings } from "@/lib/settings";
 
 export async function GET() {
   const userId = await getUserId();
@@ -15,7 +15,7 @@ export async function GET() {
 
   const r = rows[0];
   const settings: SavedSettings = {
-    fontFamily: r.font_family,
+    fontFamily: resolveFont(r.font_family),
     fontSize: r.font_size,
     letterSpacing: r.letter_spacing,
     wordSpacing: r.word_spacing,
@@ -53,7 +53,7 @@ export async function PUT(req: Request) {
 
   const r = rows[0];
   const settings: SavedSettings = {
-    fontFamily: r.font_family,
+    fontFamily: resolveFont(r.font_family),
     fontSize: r.font_size,
     letterSpacing: r.letter_spacing,
     wordSpacing: r.word_spacing,

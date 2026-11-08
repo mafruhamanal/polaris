@@ -2,21 +2,15 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  type SavedSettings, type BackgroundId,
-  BACKGROUNDS, sanitizeSavedSettings, savedSettingsToTypographyStyle,
+  type SavedSettings, type BackgroundId, type FontFamily,
+  BACKGROUNDS, FONTS, sanitizeSavedSettings, savedSettingsToTypographyStyle, applyPageTheme,
 } from "@/lib/settings";
 import { SAMPLE_TEXT } from "@/lib/quiz/questions";
 
 type ElevenLabsVoice = { voice_id: string; name: string; preview_url: string };
 
-const FONT_OPTIONS = [
-  { id: "system", label: "System default" },
-  { id: "Atkinson Hyperlegible", label: "Atkinson Hyperlegible" },
-  { id: "Lexend", label: "Lexend" },
-  { id: "Verdana", label: "Verdana" },
-  { id: "serif", label: "Serif" },
-  { id: "monospace", label: "Monospace" },
-];
+// Exactly the fonts the quiz offers (FONTS in lib/settings.ts), so the two can't drift apart.
+const FONT_OPTIONS = FONTS.map((f) => ({ id: f.id, label: f.id }));
 
 const LEVEL_OPTIONS = [
   { id: "simple", label: "Simple" },
@@ -74,6 +68,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
     });
     if (res.ok) {
       const typography = savedSettingsToTypographyStyle(s);
+      applyPageTheme(s.background);
       document.documentElement.style.fontSize = `${s.fontSize}px`;
       document.documentElement.style.setProperty('--ui-line-height', String(typography.lineHeight));
       document.body.style.fontFamily = typography.fontFamily;
@@ -113,7 +108,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
         {/* Font */}
         <div className="flex items-center gap-6 px-6 py-5">
           <label className="w-52 text-xl font-medium text-star-white shrink-0">Font</label>
-          <select value={s.fontFamily} onChange={(e) => set("fontFamily", e.target.value)}
+          <select value={s.fontFamily} onChange={(e) => set("fontFamily", e.target.value as FontFamily)}
             className="border border-space-light rounded-lg px-4 py-3 text-xl flex-1 bg-space-light text-star-white focus:outline-none focus:ring-2 focus:ring-nebula-teal">
             {FONT_OPTIONS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
           </select>

@@ -8,7 +8,7 @@ export default function HomePage() {
         <Link href="/quiz" className="px-5 py-2 text-sm bg-nebula-teal text-space-deep rounded font-medium hover:opacity-90 transition-opacity">
           Find your reading style
         </Link>
-        <Link href="/saved" className="px-5 py-2 text-sm border border-white/20 text-star-white rounded hover:bg-white/10 transition-colors">
+        <Link href="/saved" className="px-5 py-2 text-sm border border-star-white/20 text-star-white rounded hover:bg-star-white/10 transition-colors">
           View saved responses
         </Link>
       </div>

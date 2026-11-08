@@ -4,7 +4,7 @@
 // screenshot), `text` is the text recognized from it and may be empty.
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
-import { SAVED_DEFAULTS, type SavedSettings, type SavedReadingLevel } from "@/lib/settings";
+import { SAVED_DEFAULTS, resolveFont, type SavedSettings, type SavedReadingLevel } from "@/lib/settings";
 import { streamText, hasGeminiKey, imageFrom, SCREENSHOT_NOTE } from "@/lib/ai/gemini";
 import { simplifySystem, simplifyPrompt } from "@/lib/ai/prompts";
 
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   `;
 
   const settings: SavedSettings = rows.length === 0 ? SAVED_DEFAULTS : {
-    fontFamily: rows[0].font_family,
+    fontFamily: resolveFont(rows[0].font_family),
     fontSize: rows[0].font_size,
     letterSpacing: rows[0].letter_spacing,
     wordSpacing: rows[0].word_spacing,
