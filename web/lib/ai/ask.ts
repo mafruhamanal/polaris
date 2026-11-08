@@ -22,9 +22,8 @@ export type AskResult = {
   /** false = the question isn't about the text; `suggestions` offers on-topic ones. */
   inScope: boolean;
   answer: string;
-  /** false = general knowledge explaining something the text mentions. */
+  /** Always true and always empty: kept so older Mac builds can still read answers. */
   fromText: boolean;
-  /** Always empty: kept so Mac builds from before quotes were dropped can still read answers. */
   evidence: string[];
   /** Short follow-up questions for the suggestion chips. */
   suggestions: string[];
@@ -33,7 +32,7 @@ export type AskResult = {
 const SYSTEM = `You help a reader with dyslexia understand text they selected.
 Answer ONLY questions about the selected text or its surrounding context.
 This may be a follow-up: use EARLIER IN THIS CONVERSATION to understand words like "it" or "that".
-You may use general knowledge to explain words or ideas the text mentions; set fromText=false when you do.
+You may use general knowledge to explain words or ideas the text mentions.
 If the question is unrelated to the text, set inScope=false, say kindly that you can only help with the selected text, and suggest on-topic questions instead.
 This is a quick back-and-forth chat, so keep the "answer" SHORT: 1 or 2 short sentences, about 30 words at most. Give the direct answer first and nothing extra: no introduction, no repeating the question, no list of points, no extra background. The reader can always ask a follow-up for more.
 Only go longer (at most about 60 words) if the question truly needs a step-by-step explanation.
@@ -45,10 +44,9 @@ const SCHEMA: GeminiSchema = {
   properties: {
     inScope: { type: "BOOLEAN" },
     answer: { type: "STRING" },
-    fromText: { type: "BOOLEAN" },
     suggestions: { type: "ARRAY", items: { type: "STRING" } },
   },
-  required: ["inScope", "answer", "fromText", "suggestions"],
+  required: ["inScope", "answer", "suggestions"],
 };
 
 /** Caps on what we send to Gemini, so one request can't be huge. */
@@ -89,7 +87,7 @@ export async function ask(input: AskInput): Promise<AskResult> {
   return {
     inScope: raw.inScope !== false,
     answer: typeof raw.answer === "string" ? raw.answer : "",
-    fromText: raw.fromText !== false,
+    fromText: true,
     evidence: [],
     suggestions: strings(raw.suggestions).map((s) => s.trim()).filter(Boolean).slice(0, 3),
   };
