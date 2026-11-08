@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   email={session.user?.email ?? ""}
                   signOutForm={
                     <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
-                      <button className="w-full text-left px-4 py-2 text-sm font-medium text-ink hover:bg-ink/5 transition-colors">
+                      <button className="w-full text-left px-8 py-4 text-base font-medium text-ink hover:bg-ink/5 transition-colors">
                         Sign out
                       </button>
                     </form>
