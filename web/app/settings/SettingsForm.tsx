@@ -80,59 +80,59 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
     <div className="space-y-6">
       {/* Live preview */}
       <div>
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Preview</p>
+        <p className="text-xs font-medium text-star-dim uppercase tracking-wide mb-2">Preview</p>
         <div style={style} className="rounded-2xl p-6 shadow-sm transition-all duration-300">
           <p>{SAMPLE_TEXT}</p>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+      <div className="bg-space-mid rounded-2xl border border-nebula-teal/10 shadow-sm divide-y divide-space-light">
 
         {/* Font */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Font</label>
+          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Font</label>
           <select value={s.fontFamily} onChange={(e) => set("fontFamily", e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm flex-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+            className="border border-space-light rounded-lg px-3 py-1.5 text-sm flex-1 bg-space-light text-star-white focus:outline-none focus:ring-2 focus:ring-nebula-teal">
             {FONT_OPTIONS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
           </select>
         </div>
 
         {/* Font size */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Text size</label>
+          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Text size</label>
           <input type="range" min={12} max={32} step={1} value={s.fontSize}
             onChange={(e) => set("fontSize", Number(e.target.value))}
-            className="flex-1 accent-blue-600" />
-          <span className="text-sm text-gray-500 w-10 text-right">{s.fontSize}px</span>
+            className="flex-1 accent-nebula-teal" />
+          <span className="text-sm text-star-dim w-10 text-right">{s.fontSize}px</span>
         </div>
 
         {/* Letter spacing */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Letter spacing</label>
+          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Letter spacing</label>
           <input type="range" min={0} max={0.3} step={0.01} value={s.letterSpacing}
             onChange={(e) => set("letterSpacing", Number(e.target.value))}
-            className="flex-1 accent-blue-600" />
-          <span className="text-sm text-gray-500 w-10 text-right">{s.letterSpacing.toFixed(2)}</span>
+            className="flex-1 accent-nebula-teal" />
+          <span className="text-sm text-star-dim w-10 text-right">{s.letterSpacing.toFixed(2)}</span>
         </div>
 
         {/* Line spacing */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Line spacing</label>
+          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Line spacing</label>
           <input type="range" min={1} max={2.5} step={0.05} value={s.lineSpacing}
             onChange={(e) => set("lineSpacing", Number(e.target.value))}
-            className="flex-1 accent-blue-600" />
-          <span className="text-sm text-gray-500 w-10 text-right">{s.lineSpacing.toFixed(1)}</span>
+            className="flex-1 accent-nebula-teal" />
+          <span className="text-sm text-star-dim w-10 text-right">{s.lineSpacing.toFixed(1)}</span>
         </div>
 
         {/* Background */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Background</label>
+          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Background</label>
           <div className="flex gap-2">
             {(Object.entries(BACKGROUNDS) as [BackgroundId, { label: string; bg: string; text: string }][]).map(([id, val]) => (
               <button key={id} onClick={() => set("background", id)}
                 title={val.label}
-                style={{ backgroundColor: val.bg, color: val.text, border: s.background === id ? "2px solid #2563EB" : "2px solid transparent" }}
+                style={{ backgroundColor: val.bg, color: val.text, border: s.background === id ? "2px solid #64ffda" : "2px solid transparent" }}
                 className="w-8 h-8 rounded-lg text-xs font-bold transition-all">
                 A
               </button>
@@ -142,31 +142,31 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
 
         {/* Voice */}
         <div className="px-5 py-3 space-y-2">
-          <label className="block w-36 text-sm font-medium text-gray-700">Voice</label>
+          <label className="block w-36 text-sm font-medium text-star-dim">Voice</label>
           {voices.length === 0 ? (
-            <p className="text-sm text-gray-400">Loading voices…</p>
+            <p className="text-sm text-star-dim">Loading voices…</p>
           ) : (
             <div className="space-y-2">
               <div
                 onClick={() => set("voice", null)}
                 className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                  s.voice === null ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  s.voice === null ? "border-nebula-teal bg-nebula-teal/10" : "border-space-light hover:border-nebula-teal/40"
                 }`}
               >
-                <span className="flex-1 text-sm font-medium">No voice (Mac default)</span>
+                <span className={`flex-1 text-sm font-medium ${s.voice === null ? "text-nebula-teal" : "text-star-white"}`}>No voice (Mac default)</span>
               </div>
               {voices.map((v) => (
                 <div
                   key={v.voice_id}
                   onClick={() => set("voice", v.voice_id)}
                   className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                    s.voice === v.voice_id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                    s.voice === v.voice_id ? "border-nebula-teal bg-nebula-teal/10" : "border-space-light hover:border-nebula-teal/40"
                   }`}
                 >
-                  <span className="flex-1 text-sm font-medium">{v.name}</span>
+                  <span className={`flex-1 text-sm font-medium ${s.voice === v.voice_id ? "text-nebula-teal" : "text-star-white"}`}>{v.name}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); playVoice(v.preview_url); }}
-                    className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                    className="text-sm text-nebula-teal hover:text-star-white px-3 py-1 rounded-lg bg-nebula-teal/10 hover:bg-nebula-teal/20 transition-colors"
                   >
                     ▶ Play
                   </button>
@@ -178,35 +178,35 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
 
         {/* Reading speed */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Reading speed</label>
+          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Reading speed</label>
           <input type="range" min={0.5} max={2} step={0.05} value={s.readingSpeed}
             onChange={(e) => set("readingSpeed", Number(e.target.value))}
             onPointerUp={voices.length > 0 ? playSpeedPreview : undefined}
-            className="flex-1 accent-blue-600" />
-          <span className="text-sm text-gray-500 w-10 text-right">{s.readingSpeed.toFixed(2)}×</span>
+            className="flex-1 accent-nebula-teal" />
+          <span className="text-sm text-star-dim w-10 text-right">{s.readingSpeed.toFixed(2)}×</span>
         </div>
 
         {/* Reading level */}
         <div className="px-5 py-3 space-y-2">
           <div className="flex items-center gap-4">
-            <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Reading level</label>
+            <label className="w-36 text-sm font-medium text-star-dim shrink-0">Reading level</label>
             <div className="flex gap-2">
               {LEVEL_OPTIONS.map((l) => (
                 <button key={l.id} onClick={() => set("readingLevel", l.id as SavedSettings["readingLevel"])}
                   className={`px-4 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
-                    s.readingLevel === l.id ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 hover:border-gray-300"
+                    s.readingLevel === l.id ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-dim hover:border-nebula-teal/40 hover:text-star-white"
                   }`}>
                   {l.label}
                 </button>
               ))}
             </div>
           </div>
-          <p className="text-sm text-gray-400 pl-36">{LEVEL_DESCRIPTIONS[s.readingLevel]}</p>
+          <p className="text-sm text-star-dim pl-36">{LEVEL_DESCRIPTIONS[s.readingLevel]}</p>
         </div>
       </div>
 
       <button onClick={save} disabled={status === "saving"}
-        className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">
+        className="w-full bg-nebula-teal text-space-deep py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
         {status === "idle" && "Save settings"}
         {status === "saving" && "Saving…"}
         {status === "saved" && "Saved ✓"}

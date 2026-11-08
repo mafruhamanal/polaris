@@ -24,7 +24,7 @@ export default function QuestionCard({ prompt, optionA, optionB, soFar, onPick }
             <button
               key={option.id}
               onClick={() => onPick(option)}
-              className="text-left rounded-2xl border-2 border-transparent hover:border-blue-400 focus:border-blue-500 focus:outline-none transition-all group"
+              className="text-left rounded-2xl border-2 border-space-light hover:border-nebula-purple focus:border-nebula-teal focus:outline-none transition-all group bg-space-mid"
             >
               <div
                 style={{ ...style, minHeight: "10rem" }}
@@ -32,7 +32,7 @@ export default function QuestionCard({ prompt, optionA, optionB, soFar, onPick }
               >
                 <p>{SAMPLE_TEXT}</p>
               </div>
-              <p className="text-center text-sm text-gray-500 mt-2 font-medium capitalize">{option.label}</p>
+              <p className="text-center text-sm text-star-dim mt-2 font-medium capitalize">{option.label}</p>
             </button>
           );
         })}

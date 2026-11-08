@@ -1,10 +1,46 @@
 @import "tailwindcss";
 
 @theme {
-  --color-peach: #ffd9c2;
-  --color-peach-light: #fff3eb;
-  --color-ink: #1f2440;
-  --color-ink-soft: #4a4e66;
-  --color-ember: #d9572b;
-  --color-logo: var(--color-ink);
+  /* Space background scale */
+  --color-space-deep:    #0d0f1e;
+  --color-space-mid:     #131629;
+  --color-space-light:   #1a1f38;
+
+  /* Text */
+  --color-star-white:    #eef0ff;
+  --color-star-dim:      #8892b0;
+
+  /* Accents */
+  --color-nebula-teal:   #64ffda;
+  --color-nebula-purple: #bd93f9;
+  --color-nebula-gold:   #ffb347;
+
+  /* Legacy — kept for reading preview surfaces */
+  --color-peach:         #ffd9c2;
+  --color-peach-light:   #fff3eb;
+  --color-ink:           #1f2440;
+  --color-ink-soft:      #4a4e66;
+  --color-ember:         #d9572b;
+  --color-logo:          var(--color-nebula-teal);
+}
+
+/* Subtle star field — three overlapping dot grids at different densities */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle, rgba(238,240,255,0.65) 1px, transparent 1px),
+    radial-gradient(circle, rgba(100,255,218,0.25) 1px, transparent 1px),
+    radial-gradient(circle, rgba(238,240,255,0.35) 1px, transparent 1px);
+  background-size: 320px 320px, 190px 190px, 130px 130px;
+  background-position: 17px 44px, 73px 121px, 39px 88px;
+}
+
+/* Ensure page content sits above star field */
+body > * {
+  position: relative;
+  z-index: 1;
 }
