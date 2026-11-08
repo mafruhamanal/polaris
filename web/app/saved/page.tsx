@@ -64,7 +64,7 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
       )}
 
       {allRows.length > 0 && rows.length === 0 ? (
-        <p className="text-center py-16 text-xl text-star-white">Nothing in this catalog yet. Use the catalog menu on any item to move it here.</p>
+        <p className="text-center py-16 text-xl text-star-white">Nothing in this catalog yet. Notes you save to it from the Mac app will show up here.</p>
       ) : rows.length === 0 ? (
         <div className="text-center py-20 space-y-3">
           <div className="text-9xl">📭</div>
@@ -85,8 +85,6 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
                 sourceUrl={r.source_url ? String(r.source_url) : null}
                 createdAt={String(r.created_at)}
                 title={r.title ? String(r.title) : null}
-                catalogId={r.catalog_id ? String(r.catalog_id) : null}
-                catalogs={catalogs}
                 readingStyle={readingStyle}
               />
             </li>
