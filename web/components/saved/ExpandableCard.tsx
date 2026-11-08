@@ -3,6 +3,7 @@
 // A saved card that opens to show more when you click it (used for Ask conversations).
 // The header, preview and full view are drawn on the server and passed in; this only holds open/closed.
 import { useState, type ReactNode } from "react";
+import { useSpeechCard } from "./SpeechCard";
 
 type Props = {
   header: ReactNode;
@@ -16,6 +17,9 @@ type Props = {
 
 export default function ExpandableCard({ header, preview, full, messages }: Props) {
   const [open, setOpen] = useState(false);
+  // Reading the card aloud reads the whole conversation, so show all of it.
+  const reading = useSpeechCard()?.active ?? false;
+  const shown = open || reading;
 
   function onCardClick(e: React.MouseEvent) {
     // Buttons and links in the card (like delete) do their own thing; selecting text to copy it isn't a click.
@@ -30,15 +34,15 @@ export default function ExpandableCard({ header, preview, full, messages }: Prop
       className="bg-space-mid rounded-2xl border border-space-light shadow-sm p-8 space-y-6 cursor-pointer hover:border-nebula-teal/60 transition-colors"
     >
       {header}
-      {open ? full : preview}
+      {shown ? full : preview}
       {/* No handler of its own: the click reaches the card, so mouse and keyboard toggle it the same way. */}
       <button
         type="button"
         data-toggle
-        aria-expanded={open}
+        aria-expanded={shown}
         className="text-xl font-medium text-nebula-teal hover:underline"
       >
-        {open ? "Hide the conversation ▲" : `See the whole conversation (${messages} message${messages !== 1 ? "s" : ""}) ▼`}
+        {shown ? "Hide the conversation ▲" : `See the whole conversation (${messages} message${messages !== 1 ? "s" : ""}) ▼`}
       </button>
     </div>
   );
