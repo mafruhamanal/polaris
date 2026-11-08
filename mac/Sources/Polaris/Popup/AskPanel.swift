@@ -268,6 +268,7 @@ final class AskPanel: NSView {
         chip.image = NSImage(systemSymbolName: "wand.and.stars", accessibilityDescription: nil)?
             .withSymbolConfiguration(.init(pointSize: CGFloat(settings.fontSize) * 0.8, weight: .semibold))
         chip.imagePosition = .imageLeading
+        chip.imageHugsTitle = true
         chip.contentTintColor = .white
         let styled = NSMutableAttributedString(attributedString: settings.styled(" Simplify"))
         let whole = NSRange(location: 0, length: styled.length)
