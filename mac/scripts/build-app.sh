@@ -39,6 +39,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSMicrophoneUsageDescription</key><string>Polaris listens when you use Write, so you can say your thoughts instead of typing them.</string>
+  <key>NSSpeechRecognitionUsageDescription</key><string>Polaris turns what you say in Write into text, on this Mac.</string>
   <key>CFBundleURLTypes</key>
   <array>
     <dict>
