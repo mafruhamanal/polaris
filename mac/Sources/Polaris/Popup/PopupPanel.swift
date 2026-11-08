@@ -87,8 +87,9 @@ final class Popup {
         scroll.documentView = textView
 
         controls.autoresizingMask = []
-        backButton.image = NSImage(systemSymbolName: "chevron.left", accessibilityDescription: "Back")
-        backButton.imagePosition = .imageLeading
+        backButton.image = NSImage(systemSymbolName: "chevron.left", accessibilityDescription: "Back")?
+            .withSymbolConfiguration(.init(pointSize: 14, weight: .semibold))
+        backButton.imagePosition = .imageOnly
         backButton.bezelStyle = .regularSquare
         backButton.isBordered = false
         backButton.toolTip = "Back to the three icons (Delete)"
@@ -227,14 +228,11 @@ final class Popup {
         let bar = back || readerControls ? barHeight : 0
         scroll.frame = NSRect(x: 8, y: 8 + bar, width: size.width - 16, height: size.height - 16 - bar)
         controls.frame = NSRect(x: 0, y: 4, width: size.width, height: barHeight)
-        backButton.frame = NSRect(x: 12, y: 4, width: 60, height: barHeight)
+        backButton.frame = NSRect(x: 8, y: 4, width: barHeight, height: barHeight)
         let color = SettingsStore.shared.settings.textColor
         background.appearance = SettingsStore.shared.settings.appearance
         ask.appearance = SettingsStore.shared.settings.appearance
         backButton.contentTintColor = color
-        backButton.attributedTitle = NSAttributedString(string: "Back", attributes: [
-            .font: NSFont.systemFont(ofSize: 12), .foregroundColor: color,
-        ])
     }
 
     @objc private func backTapped() { onBack?() }
