@@ -107,6 +107,14 @@ enum PolarisAPI {
         return try JSONDecoder().decode(Response.self, from: try await send("api/catalogs")).catalogs.map(\.name)
     }
 
+    /// Creates a catalog (or finds the existing one with that name); returns its name as saved.
+    static func createCatalog(_ name: String) async throws -> String {
+        struct Body: Encodable { let name: String }
+        struct Catalog: Decodable { let name: String }
+        let data = try await send("api/catalogs", method: "POST", body: try JSONEncoder().encode(Body(name: name)))
+        return try JSONDecoder().decode(Catalog.self, from: data).name
+    }
+
     /// Saves a Write note to Saved Responses, in the catalog named `catalog` (created if new).
     static func saveNote(title: String, note: String, transcript: String, catalog: String?,
                          app: String?, window: String?) async throws {

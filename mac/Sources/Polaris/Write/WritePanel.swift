@@ -17,6 +17,9 @@ final class WritePanel: NSView {
     private let level = NSLevelIndicator()
     private let actionRow = NSView()
     private let catalogBox = NSComboBox()
+    private let newCatalogButton = FirstClickButton()
+    /// True after "New catalog" until the name is entered (Return) or a catalog is picked.
+    private var namingCatalog = false
     private let speakButton = FirstClickButton()
     private var doneChip: NSButton?
     private var saveChip: NSButton?
@@ -71,12 +74,21 @@ final class WritePanel: NSView {
 
         catalogBox.completes = true
         catalogBox.focusRingType = .none
+        catalogBox.target = self
+        catalogBox.action = #selector(catalogEntered)
+
+        newCatalogButton.isBordered = false
+        newCatalogButton.image = NSImage(systemSymbolName: "folder.badge.plus", accessibilityDescription: "New catalog")?
+            .withSymbolConfiguration(.init(pointSize: 18, weight: .regular))
+        newCatalogButton.toolTip = "New catalog"
+        newCatalogButton.target = self
+        newCatalogButton.action = #selector(newCatalog)
 
         speakButton.isBordered = false
         speakButton.target = self
         speakButton.action = #selector(speak)
 
-        for v in [header, scroll, titleField, styleRow, micButton, status, level, actionRow, catalogBox, speakButton] as [NSView] {
+        for v in [header, scroll, titleField, styleRow, micButton, status, level, actionRow, catalogBox, newCatalogButton, speakButton] as [NSView] {
             addSubview(v)
         }
 
@@ -101,6 +113,7 @@ final class WritePanel: NSView {
         problem = nil
         titleField.stringValue = ""
         catalogBox.stringValue = ""
+        namingCatalog = false
         applySettings()
         loadCatalogs()
         setPhase(.recording)
@@ -306,6 +319,51 @@ final class WritePanel: NSView {
         reader.togglePlay(textView.string)
     }
 
+    /// Clears the catalog box for a new name; Return creates it.
+    @objc private func newCatalog() {
+        guard phase == .result else { return }
+        namingCatalog = true
+        catalogBox.stringValue = ""
+        setCatalogPlaceholder("New catalog name, then Return")
+        window?.makeFirstResponder(catalogBox)
+        setStatus("Name your new catalog and press Return.")
+    }
+
+    /// Return in the catalog box (or picking one from the list).
+    @objc private func catalogEntered() {
+        let name = catalogBox.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existing = catalogBox.objectValues.compactMap { $0 as? String }
+        guard namingCatalog, !name.isEmpty,
+              !existing.contains(where: { $0.caseInsensitiveCompare(name) == .orderedSame }) else {
+            endNamingCatalog()
+            return
+        }
+        setStatus("Creating “\(name)”…")
+        Task { [weak self] in
+            do {
+                let saved = try await PolarisAPI.createCatalog(name)
+                guard let self else { return }
+                self.catalogBox.addItem(withObjectValue: saved)
+                self.catalogBox.stringValue = saved
+                self.endNamingCatalog()
+                self.setStatus("✓ Made “\(saved)”. Save to put this note in it.")
+            } catch {
+                self?.setStatus("⚠️ " + error.localizedDescription)
+            }
+        }
+    }
+
+    private func endNamingCatalog() {
+        namingCatalog = false
+        setCatalogPlaceholder("Catalog (optional)")
+    }
+
+    private func setCatalogPlaceholder(_ s: String) {
+        catalogBox.placeholderAttributedString = NSAttributedString(string: s, attributes: [
+            .font: settings.font, .foregroundColor: NSColor.placeholderTextColor,
+        ])
+    }
+
     private func loadCatalogs() {
         Task { [weak self] in
             guard let names = try? await PolarisAPI.catalogs() else { return }
@@ -326,6 +384,7 @@ final class WritePanel: NSView {
         titleField.isHidden = !result
         actionRow.isHidden = !result
         catalogBox.isHidden = !result
+        newCatalogButton.isHidden = !result
         saveChip?.isHidden = !result
         speakButton.isHidden = !result
         status.isHidden = next == .working
@@ -353,9 +412,8 @@ final class WritePanel: NSView {
         textView.typingAttributes = settings.textAttributes
         textView.insertionPointColor = color
         catalogBox.font = settings.font
-        catalogBox.placeholderAttributedString = NSAttributedString(string: "Catalog (optional)", attributes: [
-            .font: settings.font, .foregroundColor: NSColor.placeholderTextColor,
-        ])
+        setCatalogPlaceholder("Catalog (optional)")
+        newCatalogButton.contentTintColor = color
         speakButton.contentTintColor = color
         micButton.layer?.cornerRadius = 22
 
@@ -453,7 +511,8 @@ final class WritePanel: NSView {
         case .result:
             let saveW = saveChip.map(Chip.width) ?? 0
             saveChip?.frame = NSRect(x: w - pad - saveW, y: bottom + (fieldH - chipH) / 2, width: saveW, height: chipH)
-            catalogBox.frame = NSRect(x: pad, y: bottom + (fieldH - 26) / 2, width: max(80, w - pad * 2 - saveW - 8),
+            newCatalogButton.frame = NSRect(x: w - pad - saveW - 8 - 32, y: bottom + (fieldH - 28) / 2, width: 32, height: 28)
+            catalogBox.frame = NSRect(x: pad, y: bottom + (fieldH - 26) / 2, width: max(80, w - pad * 2 - saveW - 8 - 40),
                                       height: max(26, fieldH - 2))
             bottom += fieldH + gap
             status.frame = NSRect(x: pad, y: bottom, width: w - pad * 2, height: smallH)
