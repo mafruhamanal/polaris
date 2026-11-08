@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   type SavedSettings, type BackgroundId,
   BACKGROUNDS, sanitizeSavedSettings, savedSettingsToStyle,
@@ -24,10 +24,17 @@ const LEVEL_OPTIONS = [
   { id: "advanced", label: "Advanced" },
 ];
 
+const LEVEL_DESCRIPTIONS: Record<string, string> = {
+  simple:   "Text is rewritten with short sentences and everyday words — easiest to read",
+  standard: "Text is lightly simplified with clearer sentences — balanced and readable",
+  advanced: "Text is shown as-is, with no changes — closest to the original source",
+};
+
 export default function SettingsForm({ settings: initial }: { settings: SavedSettings }) {
   const [s, setS] = useState<SavedSettings>(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     fetch("/api/voices")
@@ -41,7 +48,20 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
   }
 
   function playVoice(previewUrl: string) {
-    new Audio(previewUrl).play();
+    audioRef.current?.pause();
+    const audio = new Audio(previewUrl);
+    audioRef.current = audio;
+    audio.play();
+  }
+
+  function playSpeedPreview() {
+    audioRef.current?.pause();
+    const preview = voices.find((v) => v.voice_id === s.voice)?.preview_url ?? voices[0]?.preview_url;
+    if (!preview) return;
+    const audio = new Audio(preview);
+    audio.playbackRate = s.readingSpeed;
+    audioRef.current = audio;
+    audio.play();
   }
 
   async function save() {
@@ -161,23 +181,27 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
           <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Reading speed</label>
           <input type="range" min={0.5} max={2} step={0.05} value={s.readingSpeed}
             onChange={(e) => set("readingSpeed", Number(e.target.value))}
+            onPointerUp={voices.length > 0 ? playSpeedPreview : undefined}
             className="flex-1 accent-blue-600" />
           <span className="text-sm text-gray-500 w-10 text-right">{s.readingSpeed.toFixed(2)}×</span>
         </div>
 
         {/* Reading level */}
-        <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Reading level</label>
-          <div className="flex gap-2">
-            {LEVEL_OPTIONS.map((l) => (
-              <button key={l.id} onClick={() => set("readingLevel", l.id as SavedSettings["readingLevel"])}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
-                  s.readingLevel === l.id ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 hover:border-gray-300"
-                }`}>
-                {l.label}
-              </button>
-            ))}
+        <div className="px-5 py-3 space-y-2">
+          <div className="flex items-center gap-4">
+            <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Reading level</label>
+            <div className="flex gap-2">
+              {LEVEL_OPTIONS.map((l) => (
+                <button key={l.id} onClick={() => set("readingLevel", l.id as SavedSettings["readingLevel"])}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
+                    s.readingLevel === l.id ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 hover:border-gray-300"
+                  }`}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
           </div>
+          <p className="text-sm text-gray-400 pl-36">{LEVEL_DESCRIPTIONS[s.readingLevel]}</p>
         </div>
       </div>
 

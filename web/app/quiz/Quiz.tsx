@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   buildRounds, INTAKE_QUESTIONS, SAMPLE_TEXT, SPEED_CHOICES,
@@ -39,12 +39,16 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [speed, setSpeed] = useState<number>(1);
   const [applying, setApplying] = useState(false);
   const [elevenlabsVoices, setElevenlabsVoices] = useState<ElevenLabsVoice[]>([]);
+  const [loadingVoices, setLoadingVoices] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (phase.kind === "voice" && elevenlabsVoices.length === 0) {
+    if (phase.kind === "voice" && elevenlabsVoices.length === 0 && !loadingVoices) {
+      setLoadingVoices(true);
       fetch("/api/voices")
         .then((r) => r.json())
-        .then((d) => setElevenlabsVoices(d.voices ?? []));
+        .then((d) => setElevenlabsVoices(d.voices ?? []))
+        .finally(() => setLoadingVoices(false));
     }
   }, [phase.kind]);
 
@@ -129,7 +133,21 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
   }
 
   function playPreview(previewUrl: string) {
-    new Audio(previewUrl).play();
+    audioRef.current?.pause();
+    const audio = new Audio(previewUrl);
+    audioRef.current = audio;
+    audio.play();
+  }
+
+  function playSpeedSample() {
+    audioRef.current?.pause();
+    const preview = elevenlabsVoices.find((v) => v.voice_id === voice)?.preview_url
+      ?? elevenlabsVoices[0]?.preview_url;
+    if (!preview) return;
+    const audio = new Audio(preview);
+    audio.playbackRate = speed;
+    audioRef.current = audio;
+    audio.play();
   }
 
   // ---- phases ----
@@ -220,8 +238,10 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
         <p className="text-xs text-center text-gray-400 font-medium uppercase tracking-wide">Reading voice</p>
         <h2 className="text-2xl font-bold text-center">Which voice sounds best?</h2>
         <div className="space-y-2">
-          {elevenlabsVoices.length === 0 ? (
+          {loadingVoices ? (
             <p className="text-center text-gray-400">Loading voices…</p>
+          ) : elevenlabsVoices.length === 0 ? (
+            <p className="text-center text-gray-400">No voices available. You can skip this step.</p>
           ) : (
             elevenlabsVoices.map((v) => (
               <div
@@ -264,18 +284,25 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
         >
           <p>{SAMPLE_TEXT}</p>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          {SPEED_CHOICES.map((s) => (
-            <button
-              key={s}
-              onClick={() => setSpeed(s)}
-              className={`py-3 rounded-xl border-2 font-semibold transition-all ${
-                speed === s ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              {s === 1 ? "1× normal" : `${s}×`}
-            </button>
-          ))}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">0.5×</span>
+            <span className="text-2xl font-bold text-blue-600">{speed === 1 ? "1× normal" : `${speed}×`}</span>
+            <span className="text-sm text-gray-500">2×</span>
+          </div>
+          <input
+            type="range"
+            min={0.5}
+            max={2}
+            step={0.05}
+            value={speed}
+            onChange={(e) => setSpeed(Number(e.target.value))}
+            onPointerUp={elevenlabsVoices.length > 0 ? playSpeedSample : undefined}
+            className="w-full accent-blue-600"
+          />
+          {elevenlabsVoices.length > 0 && (
+            <p className="text-xs text-center text-gray-400">Release to hear a sample at this speed</p>
+          )}
         </div>
         <button
           onClick={() => submitAnswers(voice, speed)}
