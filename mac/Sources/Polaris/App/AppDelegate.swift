@@ -66,7 +66,7 @@ import ApplicationServices
             return nil
         }) { monitors.append(m) }
 
-        print("✅ Polaris running (web app: \(Config.apiBaseURL.absoluteString)). Select text, then draw a quick circle with your cursor.")
+        print("✅ Polaris running (web app: \(Config.apiBaseURL.absoluteString)). Select text, then circle your cursor around three times.")
     }
 
     /// A click outside the popup. In the middle of a session (Ask, Write, reading) that could be an
