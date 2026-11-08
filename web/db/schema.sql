@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS reader_settings (
   font_family    TEXT    NOT NULL DEFAULT 'system',
   font_size      INTEGER NOT NULL DEFAULT 16,
   letter_spacing REAL    NOT NULL DEFAULT 0,
+  word_spacing   REAL    NOT NULL DEFAULT 0,
   line_spacing   REAL    NOT NULL DEFAULT 1.4,
   background     TEXT    NOT NULL DEFAULT 'white',
   voice          TEXT,

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   type SavedSettings, type BackgroundId,
-  BACKGROUNDS, VOICES, sanitizeSavedSettings,
+  BACKGROUNDS, VOICES, sanitizeSavedSettings, savedSettingsToStyle,
 } from "@/lib/settings";
 import { SAMPLE_TEXT } from "@/lib/quiz/questions";
 
@@ -22,25 +22,6 @@ const LEVEL_OPTIONS = [
   { id: "advanced", label: "Advanced" },
 ];
 
-function previewStyle(s: SavedSettings): React.CSSProperties {
-  const bg = BACKGROUNDS[s.background as BackgroundId] ?? BACKGROUNDS.white;
-  const fontMap: Record<string, string> = {
-    system: "system-ui, sans-serif",
-    serif: "Georgia, serif",
-    monospace: "ui-monospace, monospace",
-    "Atkinson Hyperlegible": "'Atkinson Hyperlegible', Verdana, sans-serif",
-    Lexend: "'Lexend', Verdana, sans-serif",
-    Verdana: "Verdana, sans-serif",
-  };
-  return {
-    fontFamily: fontMap[s.fontFamily] ?? s.fontFamily,
-    fontSize: `${s.fontSize}px`,
-    letterSpacing: `${s.letterSpacing}em`,
-    lineHeight: s.lineSpacing,
-    backgroundColor: bg.bg,
-    color: bg.text,
-  };
-}
 
 export default function SettingsForm({ settings: initial }: { settings: SavedSettings }) {
   const [s, setS] = useState<SavedSettings>(initial);
@@ -61,7 +42,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
     setStatus(res.ok ? "saved" : "error");
   }
 
-  const style = previewStyle(s);
+  const style = savedSettingsToStyle(s);
 
   return (
     <div className="space-y-6">
