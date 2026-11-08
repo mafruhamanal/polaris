@@ -43,3 +43,16 @@ CREATE TABLE IF NOT EXISTS mac_device_tokens (
 
 CREATE INDEX IF NOT EXISTS saved_responses_user_created
   ON saved_responses (user_id, created_at DESC);
+
+-- Catalogs: folders the user groups saved responses and Write notes into.
+CREATE TABLE IF NOT EXISTS catalogs (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS catalogs_user_name ON catalogs (user_id, lower(name));
+
+ALTER TABLE saved_responses ADD COLUMN IF NOT EXISTS title TEXT;
+ALTER TABLE saved_responses ADD COLUMN IF NOT EXISTS catalog_id UUID REFERENCES catalogs(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS saved_responses_catalog ON saved_responses (catalog_id);
