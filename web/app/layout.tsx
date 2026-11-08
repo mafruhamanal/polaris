@@ -21,30 +21,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-screen bg-peach text-ink" style={{ fontFamily: "'Atkinson Hyperlegible', Verdana, sans-serif" }}>
         <header className="sticky top-0 z-10 bg-peach/90 backdrop-blur border-b border-ink/10">
-          <nav className="max-w-4xl mx-auto px-6 h-16 flex items-center gap-6">
+          <nav className="max-w-4xl mx-auto px-12 h-32 flex items-center gap-12">
             <Link href="/" className="inline-block shrink-0">
-              <Logo className="text-2xl" />
+              <Logo className="text-5xl" />
             </Link>
-            <div className="flex items-center gap-1 text-sm font-medium text-ink-soft">
-              <Link href="/quiz" className="px-3 py-1.5 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Quiz</Link>
+            <div className="flex items-center gap-2 text-base font-medium text-ink-soft">
+              <Link href="/quiz" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Quiz</Link>
               {session && (
                 <>
-                  <Link href="/saved" className="px-3 py-1.5 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Saved</Link>
-                  <Link href="/settings" className="px-3 py-1.5 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Settings</Link>
-                  <Link href="/connect" className="px-3 py-1.5 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Connect Mac</Link>
+                  <Link href="/saved" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Saved</Link>
+                  <Link href="/settings" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Settings</Link>
+                  <Link href="/connect" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Connect Mac</Link>
                 </>
               )}
             </div>
-            <div className="ml-auto flex items-center gap-3 text-sm">
+            <div className="ml-auto flex items-center gap-6 text-base">
               {session ? (
                 <>
-                  <span className="text-ink-soft hidden sm:block truncate max-w-[180px]">{session.user?.email}</span>
+                  <span className="text-ink-soft hidden sm:block truncate max-w-[240px]">{session.user?.email}</span>
                   <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
-                    <button className="px-3 py-1.5 rounded-lg font-medium text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors">Sign out</button>
+                    <button className="px-6 py-3 rounded-lg font-medium text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors">Sign out</button>
                   </form>
                 </>
               ) : (
-                <Link href="/sign-in" className="bg-ember text-white px-4 py-1.5 rounded-full font-medium hover:opacity-90 transition-opacity">Sign in</Link>
+                <Link href="/sign-in" className="bg-ember text-white px-8 py-3 rounded-full font-medium hover:opacity-90 transition-opacity">Sign in</Link>
               )}
             </div>
           </nav>
