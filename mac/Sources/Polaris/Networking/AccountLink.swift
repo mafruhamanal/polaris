@@ -7,8 +7,19 @@ enum AccountLink {
     private static let service = "Polaris"
     private static let account = "deviceToken"
 
-    /// The device token from the web app's /connect page, if connected.
+    /// The device token from the web app's /connect page, if connected. Read from the Keychain
+    /// once (at launch) and kept in memory, so macOS never asks for it while the ★ menu is open.
     static var token: String? {
+        if let cached { return cached.value }
+        let value = readKeychain()
+        cached = .init(value: value)
+        return value
+    }
+
+    private struct Cached { let value: String? }
+    private static var cached: Cached?
+
+    private static func readKeychain() -> String? {
         var item: CFTypeRef?
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -42,6 +53,7 @@ enum AccountLink {
             kSecValueData as String: Data(token.utf8),
         ]
         SecItemAdd(item as CFDictionary, nil)
+        cached = .init(value: token)
     }
 
     static func disconnect() {
@@ -51,6 +63,7 @@ enum AccountLink {
             kSecAttrAccount as String: account,
         ]
         SecItemDelete(query as CFDictionary)
+        cached = .init(value: nil)
     }
 
     /// Opens the web app's /connect page, which sends the browser back to polaris://connected.
