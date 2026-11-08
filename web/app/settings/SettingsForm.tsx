@@ -83,13 +83,17 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
     setStatus(res.ok ? "saved" : "error");
   }
 
-  // Live typography for preview — no explicit fontSize so it inherits from <html>
-  // and renders at the same scale as the rest of the UI (zoom: 1.5 cancels the page's zoom: 2/3).
+  // Preview matches the Mac popup: user's background, text color, font, and exact size.
+  const bg = BACKGROUNDS[s.background];
   const previewStyle: React.CSSProperties = {
     fontFamily: savedSettingsToTypographyStyle(s).fontFamily,
+    fontSize: `${s.fontSize}px`,
     letterSpacing: `${s.letterSpacing}em`,
     wordSpacing: `${s.wordSpacing}em`,
     lineHeight: s.lineSpacing,
+    backgroundColor: bg.bg,
+    color: bg.text,
+    boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
   };
 
   return (
@@ -97,7 +101,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
       {/* Live preview */}
       <div style={{ zoom: 1.5 }}>
         <p className="text-xl font-medium text-star-white uppercase tracking-wide mb-3">Preview</p>
-        <div style={previewStyle} className="rounded-2xl p-8 bg-space-mid border border-space-light text-star-white transition-all duration-300">
+        <div style={previewStyle} className="rounded-2xl p-8 transition-all duration-300">
           <p>{SAMPLE_TEXT}</p>
         </div>
       </div>

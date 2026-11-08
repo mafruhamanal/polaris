@@ -87,7 +87,11 @@ export default function SavedItemCard({ id, originalText, response, mode, source
 
       <div className="space-y-2">
         <p className="text-sm font-medium text-star-white uppercase tracking-wide">{isNote ? "Note" : "Response"}</p>
-        <p style={readingStyle} className="leading-relaxed whitespace-pre-line">{response.slice(0, limit)}{response.length > limit ? "…" : ""}</p>
+        <div style={{ zoom: 1.5 }}>
+          <div style={{ ...readingStyle, borderRadius: '12px', padding: '16px' }} className="whitespace-pre-line">
+            {response.slice(0, limit)}{response.length > limit ? "…" : ""}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -97,7 +101,15 @@ function Bubble({ label, text, style }: { label: string; text: string; style?: R
   return (
     <div className="space-y-2">
       <p className="text-base font-medium text-star-white uppercase tracking-wide">{label}</p>
-      <p style={style} className="text-2xl text-star-white leading-relaxed whitespace-pre-line">{text}</p>
+      {style ? (
+        <div style={{ zoom: 1.5 }}>
+          <div style={{ ...style, borderRadius: '12px', padding: '16px' }} className="whitespace-pre-line">
+            {text}
+          </div>
+        </div>
+      ) : (
+        <p className="text-2xl text-star-white leading-relaxed whitespace-pre-line">{text}</p>
+      )}
     </div>
   );
 }
