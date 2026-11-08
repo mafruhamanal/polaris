@@ -5,6 +5,10 @@ let package = Package(
     name: "Polaris",
     platforms: [.macOS(.v13)],
     targets: [
-        .executableTarget(name: "Polaris", path: "Sources/Polaris")
+        .executableTarget(
+            name: "Polaris",
+            path: "Sources/Polaris",
+            resources: [.copy("Resources/Fonts")]
+        )
     ]
 )

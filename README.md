@@ -21,8 +21,18 @@ npm run dev                     # http://localhost:3000
 ```
 
 ## Run the Mac app
+
+Quick test (polaris:// links can't reach it, so connect with ★ → Paste Connect Token):
 ```bash
 cd mac
-export ANTHROPIC_API_KEY=sk-ant-...
+export POLARIS_API_URL=http://localhost:3000   # the web app (Ask, Simplify, settings, Connect)
 swift run
 ```
+
+As a real app, so the web app's Connect page can open it with a polaris:// link:
+```bash
+mac/scripts/build-app.sh --open    # builds mac/build/Polaris.app with POLARIS_API_URL, then opens it
+```
+Then ★ in the menu bar → Connect Account, sign in, and click **Open Polaris**. Turn on
+Polaris under System Settings → Privacy & Security → Accessibility (again after rebuilding,
+since the free local signature changes each build).

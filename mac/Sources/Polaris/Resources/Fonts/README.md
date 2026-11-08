@@ -12,14 +12,12 @@ These are the fonts the web quiz offers. The quiz saves the font's **family name
 Sources: github.com/google/fonts (Atkinson Hyperlegible, Lexend) and
 github.com/antijingoist/opendyslexic (OpenDyslexic). Keep the OFL files with the fonts.
 
-## Not wired up yet
+## How the Mac app loads them
 
-`Package.swift` doesn't include any resources, and this folder sits outside the target's
-`Sources/Polaris` path, so these files aren't in the app yet. The Mac app needs to:
-1. Bundle them (move the folder under `Sources/Polaris/` and add
-   `resources: [.copy("Resources/Fonts")]` to the target, or point the target at them another way).
-2. Register them at launch, e.g. `CTFontManagerRegisterFontsForURL(url, .process, nil)` for each file.
-3. Then `NSFont(name: "Lexend", size: 18)` etc. will find them.
+`Package.swift` copies this folder into the app (`resources: [.copy("Resources/Fonts")]`), and
+`FontLoader` registers every .ttf/.otf here at launch, for Polaris only (nothing is installed
+on the system). `ReaderSettings` then finds a font by its family name, e.g. `"Lexend"`.
+To add a font, drop the file and its license here and add a row to the table above.
 
 ## Background colors (`background` field)
 
