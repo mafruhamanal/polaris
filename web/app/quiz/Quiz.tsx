@@ -154,16 +154,16 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "intro") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 max-w-lg mx-auto">
-        <div className="text-6xl">🔭</div>
-        <h1 className="text-3xl font-bold leading-tight">Find your reading settings</h1>
-        <p className="text-star-dim text-lg leading-relaxed">
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 max-w-2xl mx-auto">
+        <div className="text-9xl">🔭</div>
+        <h1 className="text-6xl font-bold leading-tight">Find your reading settings</h1>
+        <p className="text-star-dim text-3xl leading-relaxed">
           A short quiz that compares fonts, sizes, and spacing — no right or wrong answers, just what feels easier for <em>you</em>.
         </p>
-        <p className="text-sm text-star-dim">About 2 minutes · 8 steps</p>
+        <p className="text-xl text-star-dim">About 2 minutes · 8 steps</p>
         <button
           onClick={startQuiz}
-          className="bg-nebula-teal text-space-deep px-10 py-3 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity shadow-sm"
+          className="bg-nebula-teal text-space-deep px-20 py-6 rounded-full text-3xl font-semibold hover:opacity-90 transition-opacity shadow-sm"
         >
           Start →
         </button>
