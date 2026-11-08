@@ -4,7 +4,7 @@
 // settings directly. Rules, not AI, build the result: instant, predictable in a demo,
 // and every setting comes with a plain reason. The AI only phrases the final summary.
 
-import { DEFAULT_SETTINGS, type ReaderSettings, type ReadingProfile, sanitizeSettings } from "../settings";
+import { DEFAULT_SETTINGS, type ReaderSettings, type ReadingProfile, type SavedReadingLevel, sanitizeSettings } from "../settings";
 import { buildRounds, type IntakeAnswers, type RoundId } from "./questions";
 
 // ---------------------------------------------------------------------------
@@ -26,6 +26,7 @@ export interface QuizAnswers {
   /** macOS voice id, or null for the Mac default. Leave undefined if they skipped. */
   voice?: string | null;
   speed?: number;
+  readingLevel?: SavedReadingLevel;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +108,15 @@ export function buildProfile(answers: QuizAnswers, now: Date = new Date()): Read
   if (answers.speed) {
     s.ttsSpeed = answers.speed;
     evidence.ttsSpeed = `You set the reading speed to ${answers.speed}x.`;
+  }
+  if (answers.readingLevel) {
+    const levelMap: Record<SavedReadingLevel, ReaderSettings["readingLevel"]> = {
+      simple: "simplest",
+      standard: "simpler",
+      advanced: "original",
+    };
+    s.readingLevel = levelMap[answers.readingLevel];
+    evidence.readingLevel = `You set the reading level to ${answers.readingLevel}.`;
   }
 
   return { settings: sanitizeSettings(s), evidence, createdAt: now.toISOString() };
