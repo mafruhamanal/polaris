@@ -1,5 +1,43 @@
 @import "tailwindcss";
 
+/* The reading fonts the quiz and settings offer, served from public/Fonts. The family names must match
+   the ones in lib/settings.ts. (The folder is spelled "Fonts": paths are case-sensitive on most hosts.) */
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("/Fonts/AtkinsonHyperlegible-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("/Fonts/AtkinsonHyperlegible-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lexend";
+  src: url("/Fonts/Lexend-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900; /* a variable font: every weight in one file */
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/Fonts/OpenDyslexic-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/Fonts/OpenDyslexic-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-space-deep:    var(--space-deep);
   --color-space-mid:     var(--space-mid);

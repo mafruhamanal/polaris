@@ -8,13 +8,12 @@ import { SAMPLE_TEXT } from "@/lib/quiz/questions";
 type Props = {
   profile: ReadingProfile;
   settings: SavedSettings;
-  summary: string;
   perSetting: Record<string, string>;
   onApply: (settings: SavedSettings) => Promise<void>;
   applying: boolean;
 };
 
-export default function ResultsCard({ profile: initial, settings: initialSettings, summary, perSetting, onApply, applying }: Props) {
+export default function ResultsCard({ profile: initial, settings: initialSettings, perSetting, onApply, applying }: Props) {
   const [profile, setProfile] = useState(initial);
   const [settings, setSettings] = useState(initialSettings);
   const fields = editFields();
@@ -29,8 +28,10 @@ export default function ResultsCard({ profile: initial, settings: initialSetting
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">Here are your settings 🎉</h2>
-        <p className="text-star-white leading-relaxed">{summary}</p>
+        <h2 className="text-4xl font-bold">Here are your settings 🎉</h2>
+        <p className="text-xl text-star-white leading-relaxed">
+          We will update your screen to match your choices. Your text will now be set up to be easy to read. You can change any setting at any time.
+        </p>
       </div>
 
       {/* Live preview */}
@@ -44,18 +45,18 @@ export default function ResultsCard({ profile: initial, settings: initialSetting
           const currentId = currentOptionId(field, profile.settings) ?? field.options[0]?.id;
           const evidence = perSetting[field.id];
           return (
-            <div key={field.id} className="flex items-center gap-4 px-5 py-3">
-              <label className="w-36 text-sm font-medium text-star-white shrink-0">{field.label}</label>
+            <div key={field.id} className="flex items-center gap-4 px-6 py-4">
+              <label className="w-52 text-xl font-medium text-star-white shrink-0">{field.label}</label>
               <select
                 value={currentId}
                 onChange={(e) => handleEdit(field.id, e.target.value)}
-                className="border border-space-light rounded-lg px-3 py-1.5 text-sm flex-1 bg-space-light text-star-white focus:outline-none focus:ring-2 focus:ring-nebula-teal"
+                className="border border-space-light rounded-lg px-4 py-3 text-xl flex-1 bg-space-light text-star-white focus:outline-none focus:ring-2 focus:ring-nebula-teal"
               >
                 {field.options.map((opt) => (
                   <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
               </select>
-              {evidence && <span className="text-xs text-star-white hidden lg:block w-48 shrink-0">{evidence}</span>}
+              {evidence && <span className="text-base text-star-white hidden lg:block w-48 shrink-0">{evidence}</span>}
             </div>
           );
         })}
@@ -64,7 +65,7 @@ export default function ResultsCard({ profile: initial, settings: initialSetting
       <button
         onClick={() => onApply(settings)}
         disabled={applying}
-        className="w-full bg-nebula-teal text-space-deep py-4 px-6 rounded-2xl font-semibold text-lg hover:opacity-90 transition-opacity disabled:opacity-60 shadow-sm"
+        className="w-full bg-nebula-teal text-space-deep py-4 px-6 rounded-2xl font-semibold text-xl hover:opacity-90 transition-opacity disabled:opacity-60 shadow-sm"
       >
         {applying ? "Saving…" : "Apply to Polaris →"}
       </button>

@@ -330,26 +330,25 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "submitting") {
     return (
-      <div className="flex flex-col items-center justify-center py-24 space-y-4">
+      <div className="flex flex-col items-center justify-center py-24 space-y-4" style={{ zoom: 1.875 }}>
         <div className="text-5xl animate-bounce">⭐</div>
-        <p className="text-lg text-star-white">Analysing your picks…</p>
+        <p className="text-xl text-star-white">Analysing your picks…</p>
       </div>
     );
   }
 
   if (phase.kind === "results") {
     return (
-      <div className="py-4">
+      <div className="py-4" style={{ zoom: 1.875 }}>
         <ResultsCard
           profile={phase.profile}
           settings={phase.settings}
-          summary={phase.summary}
           perSetting={phase.perSetting}
           onApply={handleApply}
           applying={applying}
         />
         {!isLoggedIn && (
-          <p className="text-center text-sm text-star-white mt-4">
+          <p className="text-center text-xl text-star-white mt-4">
             You&apos;ll need to <a href="/sign-in" className="text-nebula-teal underline">sign in</a> to save these settings.
           </p>
         )}
