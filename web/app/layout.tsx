@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/quiz" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Quiz</Link>
               {session && (
                 <>
-                  <Link href="/saved" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Saved</Link>
+                  <Link href="/saved" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Saved Responses</Link>
                   <Link href="/settings" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Settings</Link>
                   <Link href="/connect" className="px-6 py-3 rounded-lg hover:bg-ink/5 hover:text-ink transition-colors">Connect Mac</Link>
                 </>
