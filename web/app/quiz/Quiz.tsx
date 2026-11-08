@@ -154,7 +154,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "intro") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 max-w-2xl mx-auto">
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 max-w-4xl mx-auto">
         <div className="text-9xl">🔭</div>
         <h1 className="text-6xl font-bold leading-tight">Find your reading settings</h1>
         <p className="text-star-dim text-3xl leading-relaxed">
