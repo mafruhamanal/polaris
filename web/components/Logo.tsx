@@ -11,7 +11,7 @@ export function Logo({ className = "" }: { className?: string }) {
     <span
       role="img"
       aria-label="Polaris"
-      className={`${archivo.className} inline-flex items-baseline font-black uppercase italic leading-none tracking-wide text-logo ${className}`}
+      className={`${archivo.className} inline-flex items-baseline font-black uppercase italic leading-none tracking-wide ${className}`}
       style={{ fontVariationSettings: '"wdth" 125' }}
     >
       P
