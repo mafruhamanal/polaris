@@ -22,13 +22,13 @@ export default function SavedItemCard({ originalText, response, mode, sourceApp,
 
   return (
     <div className="bg-space-mid rounded-2xl border border-space-light shadow-sm p-8 space-y-6">
-      <div className="flex items-center gap-4 text-xl text-star-white flex-wrap">
-        <span className={`px-5 py-1.5 rounded-full text-lg font-semibold ${badge}`}>{mode}</span>
+      <div className="flex items-center gap-4 text-3xl text-star-white flex-wrap">
+        <span className={`px-5 py-1.5 rounded-full text-2xl font-semibold ${badge}`}>{mode}</span>
         {sourceApp && <span className="text-star-white">{sourceApp}</span>}
         {sourceUrl && (
           <span className="text-star-white truncate max-w-xs">{sourceUrl}</span>
         )}
-        <span className="ml-auto text-lg text-star-white">{new Date(createdAt).toLocaleString()}</span>
+        <span className="ml-auto text-2xl text-star-white">{new Date(createdAt).toLocaleString()}</span>
       </div>
 
       <div className="space-y-2">
