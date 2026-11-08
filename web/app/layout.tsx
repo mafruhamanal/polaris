@@ -14,7 +14,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await auth();
 
   return (
-    <html lang="en" style={{ fontSize: "150%" }}>
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -54,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </nav>
         </header>
-        <div className="max-w-4xl mx-auto px-6 py-8">{children}</div>
+        <div className="max-w-4xl mx-auto px-6 py-8" style={{ fontSize: "150%" }}>{children}</div>
       </body>
     </html>
   );
