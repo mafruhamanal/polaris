@@ -147,10 +147,6 @@ final class AskPanel: NSView {
             if turn.result.inScope && !turn.result.fromText {
                 body.append(label("\nNot in the text — general explanation."))
             }
-            if turn.result.inScope && !turn.result.evidence.isEmpty, let context {
-                body.append(label("\nFrom the text:\n"))
-                body.append(passage(highlighting: turn.result.evidence, in: context))
-            }
         }
         if let pending {
             if !turns.isEmpty { body.append(gap()) }
@@ -181,29 +177,7 @@ final class AskPanel: NSView {
         result.answer.isEmpty ? "I can only help with what you selected." : result.answer
     }
 
-    /// The selection with each evidence quote highlighted. Long selections show just the quotes.
-    private func passage(highlighting quotes: [String], in context: SelectionContext) -> NSAttributedString {
-        let selection = context.selection.trimmingCharacters(in: .whitespacesAndNewlines)
-        let showSelection = selection.count <= 1200
-        let extra = quotes.filter { !showSelection || (selection as NSString).range(of: $0, options: .caseInsensitive).location == NSNotFound }
-
-        let text = ([showSelection ? selection : nil] + extra.map { "“\($0)”" }).compactMap { $0 }.joined(separator: "\n\n")
-        let result = NSMutableAttributedString(attributedString: settings.styled(text))
-        let ns = text as NSString
-        let mark = NSColor.systemYellow.withAlphaComponent(0.35)
-        for q in quotes {
-            var search = NSRange(location: 0, length: ns.length)
-            while true {
-                let r = ns.range(of: q, options: .caseInsensitive, range: search)
-                if r.location == NSNotFound { break }
-                result.addAttribute(.backgroundColor, value: mark, range: r)
-                search = NSRange(location: NSMaxRange(r), length: ns.length - NSMaxRange(r))
-            }
-        }
-        return result
-    }
-
-    /// Secondary text ("You asked:", "From the text:") in the reading font, a bit smaller, bold and dimmer.
+    /// Secondary text ("You asked:") in the reading font, a bit smaller, bold and dimmer.
     private func label(_ s: String) -> NSAttributedString {
         let base = settings.font
         let sized = NSFont(descriptor: base.fontDescriptor, size: max(12, base.pointSize * 0.8)) ?? base
