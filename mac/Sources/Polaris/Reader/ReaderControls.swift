@@ -7,11 +7,14 @@ final class ReaderControls: NSView {
     var onPrev: (() -> Void)?
     var onNext: (() -> Void)?
     var onPlayPause: (() -> Void)?
+    /// "Word help" (shown while paused) was pressed.
+    var onWordHelp: (() -> Void)?
 
     private let playButton = NSButton()
     private var buttons: [NSButton] = []
     private let spinner = Spinner()
     private let status = NSTextField(labelWithString: "")
+    private let wordHelp = NSButton()
     private var playing = false
     private var loading = false
     private var almostReady: Timer?
@@ -34,13 +37,26 @@ final class ReaderControls: NSView {
         status.lineBreakMode = .byTruncatingTail
         status.isHidden = true
         addSubview(status)
+
+        wordHelp.bezelStyle = .regularSquare
+        wordHelp.isBordered = false
+        wordHelp.imagePosition = .imageLeading
+        wordHelp.image = NSImage(systemSymbolName: "character.book.closed", accessibilityDescription: nil)
+        wordHelp.toolTip = "Syllables, how to say it, and what it means (W)"
+        wordHelp.target = self
+        wordHelp.action = #selector(wordHelpTapped)
+        wordHelp.isHidden = true
+        addSubview(wordHelp)
     }
 
-    /// The status sits left of the buttons (they're centered, about 108pt wide).
+    /// The status sits left of the buttons (they're centered, about 108pt wide), Word help right of them.
     override func layout() {
         super.layout()
         let h = status.intrinsicContentSize.height
         status.frame = NSRect(x: 12, y: (bounds.height - h) / 2, width: max(0, bounds.midX - 66 - 12), height: h)
+        let helpX = bounds.midX + 66
+        let helpW = min(wordHelp.intrinsicContentSize.width + 8, max(0, bounds.width - helpX - 22))
+        wordHelp.frame = NSRect(x: helpX, y: 2, width: helpW, height: bounds.height - 4)
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -49,10 +65,15 @@ final class ReaderControls: NSView {
     func setTint(_ color: NSColor) {
         for b in buttons { b.contentTintColor = color }
         status.textColor = color.withAlphaComponent(0.7)
+        wordHelp.contentTintColor = color
+        let font = NSFont(descriptor: SettingsStore.shared.settings.font.fontDescriptor, size: 13) ?? .systemFont(ofSize: 13)
+        wordHelp.attributedTitle = NSAttributedString(string: " Word help", attributes: [.font: font, .foregroundColor: color])
+        needsLayout = true
     }
 
     func setPlaying(_ playing: Bool) {
         self.playing = playing
+        wordHelp.isHidden = playing || loading
         guard !loading else { return }
         let name = playing ? "pause.fill" : "play.fill"
         playButton.image = NSImage(systemSymbolName: name, accessibilityDescription: playing ? "Pause" : "Play")
@@ -65,6 +86,7 @@ final class ReaderControls: NSView {
         almostReady?.invalidate()
         almostReady = nil
         if loading {
+            wordHelp.isHidden = true
             playButton.image = nil
             playButton.toolTip = "Cancel"
             spinner.show(in: playButton)
@@ -107,6 +129,7 @@ final class ReaderControls: NSView {
     }
 
     @objc private func prevTapped() { onPrev?() }
+    @objc private func wordHelpTapped() { onWordHelp?() }
     @objc private func nextTapped() { onNext?() }
     @objc private func playTapped() { onPlayPause?() }
 }

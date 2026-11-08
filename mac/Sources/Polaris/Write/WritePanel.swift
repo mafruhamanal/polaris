@@ -489,7 +489,8 @@ final class WritePanel: NSView {
         let chipH = Chip.height(settings), fieldH = max(28, settings.lineHeight + 10)
         let smallH = ceil(small("Ag").size().height)
         var top = bounds.height - topBar
-        speakButton.frame = NSRect(x: w - pad - 32, y: top + 4, width: 32, height: 28)
+        // Left of the popup's × (Close) button.
+        speakButton.frame = NSRect(x: w - pad - 32 - 36, y: top + 4, width: 32, height: 28)
 
         header.frame = NSRect(x: pad, y: top - smallH, width: w - pad * 2, height: smallH)
         top -= smallH + gap

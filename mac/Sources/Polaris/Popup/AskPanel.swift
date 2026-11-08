@@ -322,6 +322,7 @@ final class AskPanel: NSView {
         bottom += 8
         let top = bounds.height - topBar
         scroll.frame = NSRect(x: pad - 4, y: bottom, width: w - pad * 2 + 8, height: max(0, top - bottom))
-        speakButton.frame = NSRect(x: w - pad - 32, y: top + 4, width: 32, height: 28)
+        // Left of the popup's × (Close) button.
+        speakButton.frame = NSRect(x: w - pad - 32 - 36, y: top + 4, width: 32, height: 28)
     }
 }
