@@ -22,18 +22,18 @@ export default function SavedItemCard({ originalText, response, mode, sourceApp,
 
   return (
     <div className="bg-space-mid rounded-2xl border border-space-light shadow-sm p-8 space-y-6">
-      <div className="flex items-center gap-3 text-base text-star-dim flex-wrap">
-        <span className={`px-4 py-1 rounded-full text-sm font-semibold ${badge}`}>{mode}</span>
-        {sourceApp && <span className="text-star-dim">{sourceApp}</span>}
+      <div className="flex items-center gap-4 text-xl text-star-white flex-wrap">
+        <span className={`px-5 py-1.5 rounded-full text-lg font-semibold ${badge}`}>{mode}</span>
+        {sourceApp && <span className="text-star-white">{sourceApp}</span>}
         {sourceUrl && (
-          <span className="text-star-dim truncate max-w-xs">{sourceUrl}</span>
+          <span className="text-star-white truncate max-w-xs">{sourceUrl}</span>
         )}
-        <span className="ml-auto text-sm text-star-dim">{new Date(createdAt).toLocaleString()}</span>
+        <span className="ml-auto text-lg text-star-white">{new Date(createdAt).toLocaleString()}</span>
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-star-dim uppercase tracking-wide">Original</p>
-        <p className="text-lg text-star-white leading-relaxed line-clamp-2">{originalText}</p>
+        <p className="text-base font-medium text-star-dim uppercase tracking-wide">Original</p>
+        <p className="text-2xl text-star-white leading-relaxed line-clamp-2">{originalText}</p>
       </div>
 
       <div className="space-y-2">
