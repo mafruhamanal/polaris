@@ -1,5 +1,4 @@
 import type React from "react";
-import MoveToCatalog from "./MoveToCatalog";
 
 type Props = {
   id: string;
@@ -11,8 +10,6 @@ type Props = {
   createdAt: string;
   readingStyle?: React.CSSProperties;
   title?: string | null;
-  catalogId?: string | null;
-  catalogs?: { id: string; name: string }[];
 };
 
 const MODE_STYLE: Record<string, string> = {
@@ -22,7 +19,7 @@ const MODE_STYLE: Record<string, string> = {
   note:      "bg-nebula-gold/20 text-nebula-gold",
 };
 
-export default function SavedItemCard({ id, originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle, title, catalogId, catalogs = [] }: Props) {
+export default function SavedItemCard({ originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle, title }: Props) {
   const badge = MODE_STYLE[mode] ?? "bg-space-light text-star-white";
   const isNote = mode === "note";
   const limit = isNote ? 1200 : 300;
@@ -36,7 +33,6 @@ export default function SavedItemCard({ id, originalText, response, mode, source
           <span className="text-star-white truncate max-w-xs">{sourceUrl}</span>
         )}
         <span className="ml-auto text-2xl text-star-white">{new Date(createdAt).toLocaleString()}</span>
-        <MoveToCatalog itemId={id} catalogId={catalogId ?? null} catalogs={catalogs} />
       </div>
 
       {title && <h2 style={readingStyle} className="font-bold text-3xl text-star-white">{title}</h2>}
