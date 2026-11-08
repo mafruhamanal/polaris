@@ -140,6 +140,7 @@ final class WritePanel: NSView {
                 self.startClock()
             } catch {
                 self.problem = error.localizedDescription
+                self.showTranscript()
             }
             self.updateRecordingUI()
         }
@@ -170,7 +171,9 @@ final class WritePanel: NSView {
     private func showTranscript() {
         guard phase == .recording else { return }
         let said = transcriber.transcript
-        if said.isEmpty {
+        if let problem, said.isEmpty {
+            textView.textStorage?.setAttributedString(settings.styled("⚠️ " + problem))
+        } else if said.isEmpty {
             textView.textStorage?.setAttributedString(dim("Start talking. Your words will show up here, and I'll turn them into a tidy note."))
         } else {
             textView.textStorage?.setAttributedString(settings.styled(said))
@@ -188,8 +191,8 @@ final class WritePanel: NSView {
         micButton.toolTip = on ? "Pause (Space)" : "Keep listening (Space)"
         let seconds = Int(listenedBefore + (listeningSince.map { Date().timeIntervalSince($0) } ?? 0))
         let time = String(format: "%d:%02d", seconds / 60, seconds % 60)
-        if let problem {
-            setStatus("⚠️ " + problem)
+        if problem != nil {
+            setStatus("Couldn't start listening.")
         } else {
             setStatus(on ? "Listening… \(time)" : "Paused \(time). Tap the mic to keep going.")
         }
@@ -397,8 +400,11 @@ final class WritePanel: NSView {
     /// Secondary text in the reading font, a bit smaller and dimmer.
     private func small(_ s: String) -> NSAttributedString {
         let font = NSFont(descriptor: settings.font.fontDescriptor, size: max(12, CGFloat(settings.fontSize) * 0.8)) ?? settings.font
+        let oneLine = NSMutableParagraphStyle()
+        oneLine.lineBreakMode = .byTruncatingTail
         return NSAttributedString(string: s, attributes: [
             .font: font,
+            .paragraphStyle: oneLine,
             .foregroundColor: settings.textColor.withAlphaComponent(0.65),
             .kern: CGFloat(settings.letterSpacing) * font.pointSize,
         ])
