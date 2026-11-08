@@ -55,20 +55,22 @@ enum PolarisAPI {
             let after: String?
             let pageTitle: String?
             let history: [Turn]
+            let image: String?
         }
         let body = Body(question: question, selection: context.selection, before: context.before,
                         after: context.after, pageTitle: context.pageTitle,
-                        history: history.map { Turn(question: $0.question, answer: $0.answer) })
+                        history: history.map { Turn(question: $0.question, answer: $0.answer) },
+                        image: context.screenshot)
         let data = try await send("api/ask", method: "POST", body: try JSONEncoder().encode(body))
         return try JSONDecoder().decode(AskResult.self, from: data)
     }
 
     /// The selection rewritten at the user's reading level (POST /api/simplify, which also saves it).
-    static func simplify(_ text: String, app: String?, title: String?) async throws -> String {
+    static func simplify(_ text: String, app: String?, title: String?, image: String? = nil) async throws -> String {
         struct Context: Encodable { let app: String?; let title: String? }
-        struct Body: Encodable { let text: String; let mode = "simplify"; let context: Context }
+        struct Body: Encodable { let text: String; let mode = "simplify"; let context: Context; let image: String? }
         struct Response: Decodable { let text: String }
-        let body = Body(text: text, context: Context(app: app, title: title))
+        let body = Body(text: text, context: Context(app: app, title: title), image: image)
         let data = try await send("api/simplify", method: "POST", body: try JSONEncoder().encode(body))
         return try JSONDecoder().decode(Response.self, from: data).text
     }
@@ -78,9 +80,10 @@ enum PolarisAPI {
             let transcript: String
             let selection: String?
             let pageTitle: String?
+            let image: String?
         }
-        let body = Body(transcript: transcript,
-                        selection: context?.selection, pageTitle: context?.pageTitle)
+        let body = Body(transcript: transcript, selection: context?.selection,
+                        pageTitle: context?.pageTitle, image: context?.screenshot)
         let data = try await send("api/write", method: "POST", body: try JSONEncoder().encode(body))
         return try JSONDecoder().decode(WriteResult.self, from: data)
     }

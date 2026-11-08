@@ -6,7 +6,7 @@ final class FloatingPanel: NSPanel {
 }
 
 enum PopupAction {
-    case read, ask, write
+    case read, ask, write, screenshot
 }
 
 @MainActor
@@ -17,9 +17,10 @@ final class Popup {
         ("Read aloud", "speaker.wave.2.fill", .read),
         ("Ask or simplify", "questionmark.bubble", .ask),
         ("Write by talking", "mic.fill", .write),
+        ("Screenshot part of the screen", "camera.viewfinder", .screenshot),
     ]
     private var menuSize: NSSize {
-        let n = CGFloat(menuButtons.count)
+        let n = CGFloat(menuButtons.count + (thumbnail.image == nil ? 0 : 1))
         return NSSize(width: circleSize * n + circleSpacing * (n - 1), height: circleSize)
     }
     private let contentSize = NSSize(width: 420, height: 320)
@@ -41,6 +42,8 @@ final class Popup {
     let ask = AskPanel(frame: .zero)
     let write = WritePanel(frame: .zero)
     private var circles: [(PopupAction, CircleButton)] = []
+    /// The screenshot the features are using, shown before the circles.
+    private let thumbnail = NSImageView()
     private let reader = SpeechReader()
     private let highlighter: WordHighlighter
     private var anchor = NSPoint.zero
@@ -119,11 +122,20 @@ final class Popup {
         backButton.target = self
         backButton.action = #selector(backTapped)
 
-        for (i, (title, symbol, action)) in menuButtons.enumerated() {
+        thumbnail.imageScaling = .scaleProportionallyUpOrDown
+        thumbnail.wantsLayer = true
+        thumbnail.layer?.cornerRadius = 10
+        thumbnail.layer?.masksToBounds = true
+        thumbnail.layer?.borderWidth = 2
+        thumbnail.layer?.borderColor = NSColor.white.withAlphaComponent(0.9).cgColor
+        thumbnail.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.2).cgColor
+        thumbnail.toolTip = "Using this screenshot"
+        menu.addSubview(thumbnail)
+
+        for (title, symbol, action) in menuButtons {
             let button = CircleButton(title: title, symbol: symbol, diameter: circleSize) { [weak self] in
                 self?.onAction?(action)
             }
-            button.setFrameOrigin(NSPoint(x: CGFloat(i) * (circleSize + circleSpacing), y: 0))
             menu.addSubview(button)
             circles.append((action, button))
         }
@@ -138,10 +150,15 @@ final class Popup {
     // MARK: - Modes
 
     /// The first view after circling: one button per feature. Without a selection only Write works.
+    /// Shows `image` before the circles while the features use a screenshot (nil hides it).
+    func setThumbnail(_ image: NSImage?) {
+        thumbnail.image = image
+    }
+
     func showMenu(near p: NSPoint, hasSelection: Bool? = nil) {
         anchor = p
         if let hasSelection {
-            for (action, circle) in circles { circle.isEnabled = hasSelection || action == .write }
+            for (action, circle) in circles { circle.isEnabled = hasSelection || action == .write || action == .screenshot }
         }
         stopReading()
         canGoBack = false
@@ -154,6 +171,14 @@ final class Popup {
         ask.stop()
         write.isHidden = true
         write.stop()
+        // Screenshot thumbnail first (if any), then the circles.
+        let step = circleSize + circleSpacing
+        thumbnail.isHidden = thumbnail.image == nil
+        thumbnail.frame = NSRect(x: 0, y: 0, width: circleSize, height: circleSize)
+        let offset: CGFloat = thumbnail.isHidden ? 0 : step
+        for (i, (_, circle)) in circles.enumerated() {
+            circle.setFrameOrigin(NSPoint(x: offset + CGFloat(i) * step, y: 0))
+        }
         place(menuSize, hugCursor: true)
         panel.orderFrontRegardless()
     }
