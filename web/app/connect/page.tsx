@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
@@ -14,6 +15,9 @@ export default async function ConnectPage() {
 
   const token: string = rows[0].token;
   const deepLink = `polaris://connected?token=${token}`;
+  // This site's own address, for the example below (localhost in dev, the Vercel URL when deployed).
+  const h = await headers();
+  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
 
   return (
     <main className="p-10 space-y-8" style={{ zoom: 2/3 }}>
@@ -35,7 +39,7 @@ export default async function ConnectPage() {
         </div>
         <div className="bg-space-mid border border-space-light rounded-xl p-5 space-y-2">
           <p className="text-xl font-medium text-star-white">Test with curl:</p>
-          <code className="block text-lg text-nebula-teal break-all">curl -H "Authorization: Bearer {token}" http://localhost:3000/api/settings</code>
+          <code className="block text-lg text-nebula-teal break-all">curl -H "Authorization: Bearer {token}" {origin}/api/settings</code>
         </div>
       </div>
     </main>
