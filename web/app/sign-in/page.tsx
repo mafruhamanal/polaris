@@ -9,7 +9,7 @@ export default function SignInPage() {
 
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-star-white">Welcome back</h1>
-          <p className="text-star-dim">Sign in to access your reading settings and saved responses.</p>
+          <p className="text-star-white">Sign in to access your reading settings and saved responses.</p>
         </div>
 
         <form

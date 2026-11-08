@@ -80,7 +80,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
     <div className="space-y-6">
       {/* Live preview */}
       <div>
-        <p className="text-xs font-medium text-star-dim uppercase tracking-wide mb-2">Preview</p>
+        <p className="text-xs font-medium text-star-white uppercase tracking-wide mb-2">Preview</p>
         <div style={style} className="rounded-2xl p-6 shadow-sm transition-all duration-300">
           <p>{SAMPLE_TEXT}</p>
         </div>
@@ -91,7 +91,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
 
         {/* Font */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Font</label>
+          <label className="w-36 text-sm font-medium text-star-white shrink-0">Font</label>
           <select value={s.fontFamily} onChange={(e) => set("fontFamily", e.target.value)}
             className="border border-space-light rounded-lg px-3 py-1.5 text-sm flex-1 bg-space-light text-star-white focus:outline-none focus:ring-2 focus:ring-nebula-teal">
             {FONT_OPTIONS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
@@ -100,34 +100,34 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
 
         {/* Font size */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Text size</label>
+          <label className="w-36 text-sm font-medium text-star-white shrink-0">Text size</label>
           <input type="range" min={12} max={32} step={1} value={s.fontSize}
             onChange={(e) => set("fontSize", Number(e.target.value))}
             className="flex-1 accent-nebula-teal" />
-          <span className="text-sm text-star-dim w-10 text-right">{s.fontSize}px</span>
+          <span className="text-sm text-star-white w-10 text-right">{s.fontSize}px</span>
         </div>
 
         {/* Letter spacing */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Letter spacing</label>
+          <label className="w-36 text-sm font-medium text-star-white shrink-0">Letter spacing</label>
           <input type="range" min={0} max={0.3} step={0.01} value={s.letterSpacing}
             onChange={(e) => set("letterSpacing", Number(e.target.value))}
             className="flex-1 accent-nebula-teal" />
-          <span className="text-sm text-star-dim w-10 text-right">{s.letterSpacing.toFixed(2)}</span>
+          <span className="text-sm text-star-white w-10 text-right">{s.letterSpacing.toFixed(2)}</span>
         </div>
 
         {/* Line spacing */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Line spacing</label>
+          <label className="w-36 text-sm font-medium text-star-white shrink-0">Line spacing</label>
           <input type="range" min={1} max={2.5} step={0.05} value={s.lineSpacing}
             onChange={(e) => set("lineSpacing", Number(e.target.value))}
             className="flex-1 accent-nebula-teal" />
-          <span className="text-sm text-star-dim w-10 text-right">{s.lineSpacing.toFixed(1)}</span>
+          <span className="text-sm text-star-white w-10 text-right">{s.lineSpacing.toFixed(1)}</span>
         </div>
 
         {/* Background */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Background</label>
+          <label className="w-36 text-sm font-medium text-star-white shrink-0">Background</label>
           <div className="flex gap-2">
             {(Object.entries(BACKGROUNDS) as [BackgroundId, { label: string; bg: string; text: string }][]).map(([id, val]) => (
               <button key={id} onClick={() => set("background", id)}
@@ -142,9 +142,9 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
 
         {/* Voice */}
         <div className="px-5 py-3 space-y-2">
-          <label className="block w-36 text-sm font-medium text-star-dim">Voice</label>
+          <label className="block w-36 text-sm font-medium text-star-white">Voice</label>
           {voices.length === 0 ? (
-            <p className="text-sm text-star-dim">Loading voices…</p>
+            <p className="text-sm text-star-white">Loading voices…</p>
           ) : (
             <div className="space-y-2">
               <div
@@ -178,30 +178,30 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
 
         {/* Reading speed */}
         <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-star-dim shrink-0">Reading speed</label>
+          <label className="w-36 text-sm font-medium text-star-white shrink-0">Reading speed</label>
           <input type="range" min={0.5} max={2} step={0.05} value={s.readingSpeed}
             onChange={(e) => set("readingSpeed", Number(e.target.value))}
             onPointerUp={voices.length > 0 ? playSpeedPreview : undefined}
             className="flex-1 accent-nebula-teal" />
-          <span className="text-sm text-star-dim w-10 text-right">{s.readingSpeed.toFixed(2)}×</span>
+          <span className="text-sm text-star-white w-10 text-right">{s.readingSpeed.toFixed(2)}×</span>
         </div>
 
         {/* Reading level */}
         <div className="px-5 py-3 space-y-2">
           <div className="flex items-center gap-4">
-            <label className="w-36 text-sm font-medium text-star-dim shrink-0">Reading level</label>
+            <label className="w-36 text-sm font-medium text-star-white shrink-0">Reading level</label>
             <div className="flex gap-2">
               {LEVEL_OPTIONS.map((l) => (
                 <button key={l.id} onClick={() => set("readingLevel", l.id as SavedSettings["readingLevel"])}
                   className={`px-4 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
-                    s.readingLevel === l.id ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-dim hover:border-nebula-teal/40 hover:text-star-white"
+                    s.readingLevel === l.id ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-white hover:border-nebula-teal/40 hover:text-star-white"
                   }`}>
                   {l.label}
                 </button>
               ))}
             </div>
           </div>
-          <p className="text-sm text-star-dim pl-36">{LEVEL_DESCRIPTIONS[s.readingLevel]}</p>
+          <p className="text-sm text-star-white pl-36">{LEVEL_DESCRIPTIONS[s.readingLevel]}</p>
         </div>
       </div>
 

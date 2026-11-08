@@ -157,10 +157,10 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 max-w-4xl mx-auto">
         <div className="text-9xl">🔭</div>
         <h1 className="text-6xl font-bold leading-tight">Find your reading settings</h1>
-        <p className="text-star-dim text-3xl leading-relaxed">
+        <p className="text-star-white text-3xl leading-relaxed">
           A short quiz that compares fonts, sizes, and spacing — no right or wrong answers, just what feels easier for <em>you</em>.
         </p>
-        <p className="text-xl text-star-dim">About 2 minutes · 8 steps</p>
+        <p className="text-xl text-star-white">About 2 minutes · 8 steps</p>
         <button
           onClick={startQuiz}
           className="bg-nebula-teal text-space-deep px-20 py-6 rounded-full text-3xl font-semibold hover:opacity-90 transition-opacity shadow-sm"
@@ -176,7 +176,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     return (
       <div className="max-w-xl mx-auto space-y-6 py-6">
         <ProgressDots total={TOTAL_ROUNDS} current={0} />
-        <p className="text-xs text-center text-star-dim font-medium uppercase tracking-wide">About you</p>
+        <p className="text-xs text-center text-star-white font-medium uppercase tracking-wide">About you</p>
         <h2 className="text-2xl font-bold text-center leading-snug">{q.prompt}</h2>
         <div className="space-y-3">
           {q.options.map((opt) => (
@@ -235,17 +235,17 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     return (
       <div className="max-w-2xl mx-auto space-y-8 py-6">
         <ProgressDots total={TOTAL_ROUNDS} current={TOTAL_ROUNDS} />
-        <p className="text-xl text-center text-star-dim font-medium uppercase tracking-wide">Reading preferences</p>
+        <p className="text-xl text-center text-star-white font-medium uppercase tracking-wide">Reading preferences</p>
         <h2 className="text-4xl font-bold text-center">Set up your reading experience</h2>
 
         {/* Voice */}
         <div className="bg-space-mid rounded-2xl border border-nebula-teal/10 shadow-sm divide-y divide-space-light">
           <div className="px-6 py-5">
-            <p className="text-xl font-medium text-star-dim mb-4">Voice</p>
+            <p className="text-xl font-medium text-star-white mb-4">Voice</p>
             {loadingVoices ? (
-              <p className="text-xl text-star-dim py-1">Loading voices…</p>
+              <p className="text-xl text-star-white py-1">Loading voices…</p>
             ) : elevenlabsVoices.length === 0 ? (
-              <p className="text-xl text-star-dim py-1">No voices available.</p>
+              <p className="text-xl text-star-white py-1">No voices available.</p>
             ) : (
               <div className="space-y-3">
                 {elevenlabsVoices.map((v) => (
@@ -271,9 +271,9 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
           {/* Speed */}
           <div className="px-6 py-5">
-            <p className="text-xl font-medium text-star-dim mb-4">Reading speed</p>
+            <p className="text-xl font-medium text-star-white mb-4">Reading speed</p>
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xl text-star-dim">
+              <div className="flex items-center justify-between text-xl text-star-white">
                 <span>0.5×</span>
                 <span className="text-3xl font-bold text-nebula-teal">{speed === 1 ? "1× normal" : `${speed}×`}</span>
                 <span>2×</span>
@@ -289,28 +289,28 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
                 className="w-full accent-nebula-teal"
               />
               {elevenlabsVoices.length > 0 && (
-                <p className="text-lg text-star-dim">Release to hear a sample at this speed</p>
+                <p className="text-lg text-star-white">Release to hear a sample at this speed</p>
               )}
             </div>
           </div>
 
           {/* Reading level */}
           <div className="px-6 py-5 space-y-4">
-            <p className="text-xl font-medium text-star-dim">Reading level</p>
+            <p className="text-xl font-medium text-star-white">Reading level</p>
             <div className="flex gap-3">
               {(["simple", "standard", "advanced"] as const).map((l) => (
                 <button
                   key={l}
                   onClick={() => setReadingLevel(l)}
                   className={`px-6 py-3 rounded-lg text-xl font-medium border-2 transition-all capitalize ${
-                    readingLevel === l ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-dim hover:border-nebula-teal/40 hover:text-star-white"
+                    readingLevel === l ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-white hover:border-nebula-teal/40 hover:text-star-white"
                   }`}
                 >
                   {l.charAt(0).toUpperCase() + l.slice(1)}
                 </button>
               ))}
             </div>
-            <p className="text-xl text-star-dim">
+            <p className="text-xl text-star-white">
               {readingLevel === "simple" && "Text is rewritten with short sentences and everyday words — easiest to read"}
               {readingLevel === "standard" && "Text is lightly simplified with clearer sentences — balanced and readable"}
               {readingLevel === "advanced" && "Text is shown as-is, with no changes — closest to the original source"}
@@ -332,7 +332,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
         <div className="text-5xl animate-bounce">⭐</div>
-        <p className="text-lg text-star-dim">Analysing your picks…</p>
+        <p className="text-lg text-star-white">Analysing your picks…</p>
       </div>
     );
   }
@@ -349,7 +349,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
           applying={applying}
         />
         {!isLoggedIn && (
-          <p className="text-center text-sm text-star-dim mt-4">
+          <p className="text-center text-sm text-star-white mt-4">
             You&apos;ll need to <a href="/sign-in" className="text-nebula-teal underline">sign in</a> to save these settings.
           </p>
         )}

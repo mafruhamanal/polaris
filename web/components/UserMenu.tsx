@@ -33,7 +33,7 @@ export default function UserMenu({ email, signOutForm }: Props) {
 
       {open && (
         <div className="absolute right-0 top-20 bg-space-mid rounded-2xl shadow-lg border border-nebula-teal/10 py-4 z-50" style={{ width: "32rem" }}>
-          <p className="px-8 py-4 text-2xl text-star-dim truncate">{email}</p>
+          <p className="px-8 py-4 text-2xl text-star-white truncate">{email}</p>
           <hr className="border-nebula-teal/10 my-2" />
           {signOutForm}
         </div>

@@ -18,7 +18,7 @@ const MODE_STYLE: Record<string, string> = {
 };
 
 export default function SavedItemCard({ originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle }: Props) {
-  const badge = MODE_STYLE[mode] ?? "bg-space-light text-star-dim";
+  const badge = MODE_STYLE[mode] ?? "bg-space-light text-star-white";
 
   return (
     <div className="bg-space-mid rounded-2xl border border-space-light shadow-sm p-8 space-y-6">
@@ -32,12 +32,12 @@ export default function SavedItemCard({ originalText, response, mode, sourceApp,
       </div>
 
       <div className="space-y-2">
-        <p className="text-base font-medium text-star-dim uppercase tracking-wide">Original</p>
+        <p className="text-base font-medium text-star-white uppercase tracking-wide">Original</p>
         <p className="text-2xl text-star-white leading-relaxed line-clamp-2">{originalText}</p>
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-star-dim uppercase tracking-wide">Response</p>
+        <p className="text-sm font-medium text-star-white uppercase tracking-wide">Response</p>
         <p style={readingStyle} className="leading-relaxed">{response.slice(0, 300)}{response.length > 300 ? "…" : ""}</p>
       </div>
     </div>

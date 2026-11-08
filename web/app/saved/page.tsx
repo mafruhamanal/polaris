@@ -52,8 +52,8 @@ export default async function SavedPage() {
       {rows.length === 0 ? (
         <div className="text-center py-20 space-y-3">
           <div className="text-9xl">📭</div>
-          <p className="text-star-dim text-3xl">Nothing saved yet.</p>
-          <p className="text-xl text-star-dim">Use the Polaris Mac app to simplify or explain text — it&apos;ll appear here.</p>
+          <p className="text-star-white text-3xl">Nothing saved yet.</p>
+          <p className="text-xl text-star-white">Use the Polaris Mac app to simplify or explain text — it&apos;ll appear here.</p>
           <Link href="/quiz" className="inline-block mt-2 text-nebula-teal text-xl font-medium hover:underline">Take the quiz →</Link>
         </div>
       ) : (

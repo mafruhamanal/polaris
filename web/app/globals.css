@@ -30,7 +30,7 @@
   --space-mid:    #131629;
   --space-light:  #1a1f38;
   --star-white:   #eef0ff;
-  --star-dim:     #8892b0;
+  --star-dim:     #eef0ff;
   --accent:       #bd93f9;   /* primary — lavender purple */
   --accent-soft:  #d4b9ff;   /* lighter purple for secondary states */
   --accent-gold:  #ffb347;
@@ -42,7 +42,7 @@
   --space-mid:    #ffffff;   /* white card surface */
   --space-light:  #f0e8df;   /* soft warm raised */
   --star-white:   #1f2440;   /* ink — dark text */
-  --star-dim:     #4a4e66;   /* ink-soft — secondary text */
+  --star-dim:     #1f2440;   /* ink — matches star-white for light mode */
   --accent:       #7c3aed;   /* vivid purple (7:1 on white) */
   --accent-soft:  #a78bfa;   /* softer purple */
   --accent-gold:  #d97706;   /* amber-600 */

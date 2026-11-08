@@ -32,7 +32,7 @@ export default function QuestionCard({ prompt, optionA, optionB, soFar, onPick }
               >
                 <p>{SAMPLE_TEXT}</p>
               </div>
-              <p className="text-center text-xl text-star-dim mt-3 font-medium capitalize">{option.label}</p>
+              <p className="text-center text-xl text-star-white mt-3 font-medium capitalize">{option.label}</p>
             </button>
           );
         })}

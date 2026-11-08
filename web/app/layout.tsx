@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link href="/" className="inline-block shrink-0">
               <Logo className="text-5xl" />
             </Link>
-            <div className="flex items-center gap-2 text-2xl font-medium text-star-dim whitespace-nowrap">
+            <div className="flex items-center gap-2 text-2xl font-medium text-star-white whitespace-nowrap">
               <Link href="/quiz" className="px-6 py-3 rounded-lg hover:bg-space-light hover:text-star-white transition-colors">Quiz</Link>
               {session && (
                 <>

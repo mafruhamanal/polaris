@@ -30,7 +30,7 @@ export default function ResultsCard({ profile: initial, settings: initialSetting
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Here are your settings 🎉</h2>
-        <p className="text-star-dim leading-relaxed">{summary}</p>
+        <p className="text-star-white leading-relaxed">{summary}</p>
       </div>
 
       {/* Live preview */}
@@ -45,7 +45,7 @@ export default function ResultsCard({ profile: initial, settings: initialSetting
           const evidence = perSetting[field.id];
           return (
             <div key={field.id} className="flex items-center gap-4 px-5 py-3">
-              <label className="w-36 text-sm font-medium text-star-dim shrink-0">{field.label}</label>
+              <label className="w-36 text-sm font-medium text-star-white shrink-0">{field.label}</label>
               <select
                 value={currentId}
                 onChange={(e) => handleEdit(field.id, e.target.value)}
@@ -55,7 +55,7 @@ export default function ResultsCard({ profile: initial, settings: initialSetting
                   <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
               </select>
-              {evidence && <span className="text-xs text-star-dim hidden lg:block w-48 shrink-0">{evidence}</span>}
+              {evidence && <span className="text-xs text-star-white hidden lg:block w-48 shrink-0">{evidence}</span>}
             </div>
           );
         })}
