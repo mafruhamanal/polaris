@@ -11,11 +11,11 @@ import {
   buildProfile, type QuizAnswers, type Tournament, type RoundPick,
 } from "@/lib/quiz/scoring";
 import { settingsToStyle, type ReadingProfile, type SavedSettings } from "@/lib/settings";
-
-type ElevenLabsVoice = { voice_id: string; name: string; preview_url: string };
 import ProgressDots from "@/components/quiz/ProgressDots";
 import QuestionCard from "@/components/quiz/QuestionCard";
 import ResultsCard from "@/components/quiz/ResultsCard";
+
+type ElevenLabsVoice = { voice_id: string; name: string; preview_url: string };
 
 type Phase =
   | { kind: "intro" }
