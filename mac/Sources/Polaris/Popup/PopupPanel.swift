@@ -37,15 +37,14 @@ enum PopupAction: CaseIterable {
         }
     }
 
-    /// Each feature's color, on its menu circle and in its header.
-    var color: NSColor {
-        switch self {
-        case .read: return .systemBlue
-        case .ask: return .systemPurple
-        case .write: return .systemOrange
-        case .screenshot: return .systemGreen
-        }
-    }
+}
+
+/// Polaris colors, matching the web app's theme (web/app/globals.css).
+enum Brand {
+    static let space = NSColor(srgbRed: 0x13 / 255, green: 0x16 / 255, blue: 0x29 / 255, alpha: 1)      // --space-mid
+    static let spaceLight = NSColor(srgbRed: 0x1a / 255, green: 0x1f / 255, blue: 0x38 / 255, alpha: 1) // --space-light
+    static let star = NSColor(srgbRed: 0xee / 255, green: 0xf0 / 255, blue: 0xff / 255, alpha: 1)       // --star-white
+    static let accent = NSColor(srgbRed: 0xbd / 255, green: 0x93 / 255, blue: 0xf9 / 255, alpha: 1)     // --accent
 }
 
 @MainActor
@@ -157,7 +156,7 @@ final class Popup {
         badge.wantsLayer = true
         badge.layer?.cornerRadius = 12
         badgeIcon.imageScaling = .scaleNone
-        badgeIcon.contentTintColor = .white
+        badgeIcon.contentTintColor = Brand.space
         badge.addSubview(badgeIcon)
         headerTitle.lineBreakMode = .byTruncatingTail
         dragHandle.addSubview(badge)
@@ -408,7 +407,7 @@ final class Popup {
         closeButton.contentTintColor = color
         badge.isHidden = feature == nil
         if let feature {
-            badge.layer?.backgroundColor = feature.color.cgColor
+            badge.layer?.backgroundColor = Brand.accent.cgColor
             badgeIcon.image = NSImage(systemSymbolName: feature.symbol, accessibilityDescription: nil)?
                 .withSymbolConfiguration(.init(pointSize: 12, weight: .semibold))
             let font = NSFont(descriptor: settings.font.fontDescriptor, size: 15) ?? .systemFont(ofSize: 15)
@@ -528,8 +527,8 @@ final class Popup {
     }
 }
 
-/// A colored circle with an icon and a short label under it, used in the feature menu.
-/// Grows and glows a little on hover.
+/// A deep-navy circle with a lavender ring, an icon, and a short label under it, used in the
+/// feature menu. Grows and glows lavender on hover.
 @MainActor
 private final class CircleButton: NSView {
     static let labelHeight: CGFloat = 20
@@ -542,7 +541,6 @@ private final class CircleButton: NSView {
 
     private let handler: () -> Void
     private let title: String
-    private let color: NSColor
     private let glow = NSView()
     private let disc = NSView()
     private let button: FirstClickButton
@@ -551,15 +549,14 @@ private final class CircleButton: NSView {
     init(action: PopupAction, diameter: CGFloat, handler: @escaping () -> Void) {
         self.handler = handler
         title = action.title
-        color = action.color
         button = FirstClickButton(frame: .zero)
         label = NSTextField(labelWithString: action.label)
         super.init(frame: NSRect(origin: .zero, size: Self.cellSize(diameter)))
         toolTip = title
 
         glow.wantsLayer = true
-        glow.layer?.backgroundColor = color.cgColor
-        glow.layer?.shadowColor = color.cgColor
+        glow.layer?.backgroundColor = Brand.accent.cgColor
+        glow.layer?.shadowColor = Brand.accent.cgColor
         glow.layer?.shadowRadius = 8
         glow.layer?.shadowOpacity = 0.9
         glow.layer?.shadowOffset = .zero
@@ -568,9 +565,9 @@ private final class CircleButton: NSView {
         addSubview(glow)
 
         disc.wantsLayer = true
-        disc.layer?.backgroundColor = color.cgColor
-        disc.layer?.borderWidth = 1
-        disc.layer?.borderColor = NSColor.white.withAlphaComponent(0.35).cgColor
+        disc.layer?.backgroundColor = Brand.spaceLight.withAlphaComponent(0.96).cgColor
+        disc.layer?.borderWidth = 1.5
+        disc.layer?.borderColor = Brand.accent.withAlphaComponent(0.6).cgColor
         setDiscFrame(disc, hover: false)
         addSubview(disc)
 
@@ -581,17 +578,17 @@ private final class CircleButton: NSView {
         button.imagePosition = .imageOnly
         button.bezelStyle = .regularSquare
         button.isBordered = false
-        button.contentTintColor = .white
+        button.contentTintColor = Brand.star
         button.target = self
         button.action = #selector(tapped)
         disc.addSubview(button)
 
-        // A small dark pill under the circle, so the label reads on any background.
+        // A small navy pill under the circle, so the label reads on any background.
         label.font = .systemFont(ofSize: 11, weight: .semibold)
-        label.textColor = .white
+        label.textColor = Brand.star
         label.alignment = .center
         label.wantsLayer = true
-        label.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.6).cgColor
+        label.layer?.backgroundColor = Brand.space.withAlphaComponent(0.92).cgColor
         label.layer?.cornerRadius = 8
         let labelW = min(bounds.width, label.intrinsicContentSize.width + 14)
         label.frame = NSRect(x: (bounds.width - labelW) / 2, y: 2, width: labelW, height: 16)
@@ -627,7 +624,7 @@ private final class CircleButton: NSView {
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.12
             disc.animator().frame = target
-            glow.animator().alphaValue = on ? 0.55 : 0
+            glow.animator().alphaValue = on ? 0.5 : 0
         } completionHandler: { [weak self] in
             guard let self, !on else { return }
             self.disc.layer?.cornerRadius = self.disc.frame.width / 2
@@ -664,8 +661,8 @@ private final class ThumbnailView: NSImageView {
         layer?.cornerRadius = 10
         layer?.masksToBounds = true
         layer?.borderWidth = 2
-        layer?.borderColor = NSColor.white.withAlphaComponent(0.9).cgColor
-        layer?.backgroundColor = NSColor.black.withAlphaComponent(0.25).cgColor
+        layer?.borderColor = Brand.accent.withAlphaComponent(0.8).cgColor
+        layer?.backgroundColor = Brand.space.withAlphaComponent(0.6).cgColor
         toolTip = "Using this screenshot"
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
                                        owner: self, userInfo: nil))
@@ -700,7 +697,7 @@ private final class ThumbnailView: NSImageView {
         view.layer?.cornerRadius = 12
         view.layer?.masksToBounds = true
         view.layer?.borderWidth = 2
-        view.layer?.borderColor = NSColor.white.cgColor
+        view.layer?.borderColor = Brand.accent.cgColor
         view.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.6).cgColor
         p.contentView = view
         window.addChildWindow(p, ordered: .above)
