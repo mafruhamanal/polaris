@@ -1,5 +1,5 @@
-// Write view in the popup: talk, watch your words appear, then get them back as a tidy note
-// (notes, to-do, paragraph, or email) you can edit, hear, copy, and save into a catalog.
+// Write view in the popup: talk, watch your words appear, then get them back as tidy notes
+// you can edit, hear, copy, and save into a catalog.
 // When text was selected, it's sent along so the note can be about it.
 import AppKit
 
@@ -11,7 +11,6 @@ final class WritePanel: NSView {
     private let scroll = NSScrollView()
     private let textView = NSTextView()
     private let titleField = NSTextField()
-    private let styleRow = NSView()
     private let micButton = FirstClickButton()
     private let status = NSTextField(labelWithString: "")
     private let level = NSLevelIndicator()
@@ -28,7 +27,6 @@ final class WritePanel: NSView {
     private let reader = SpeechReader()
     private let highlighter: WordHighlighter
     private var phase = Phase.recording
-    private var style = WriteStyle.notes
     private var context: SelectionContext?
     private var sourceApp: String?
     private var task: Task<Void, Never>?
@@ -88,7 +86,7 @@ final class WritePanel: NSView {
         speakButton.target = self
         speakButton.action = #selector(speak)
 
-        for v in [header, scroll, titleField, styleRow, micButton, status, level, actionRow, catalogBox, newCatalogButton, speakButton] as [NSView] {
+        for v in [header, scroll, titleField, micButton, status, level, actionRow, catalogBox, newCatalogButton, speakButton] as [NSView] {
             addSubview(v)
         }
 
@@ -108,7 +106,6 @@ final class WritePanel: NSView {
         transcriber.reset()
         self.context = context
         self.sourceApp = sourceApp
-        style = .notes
         listenedBefore = 0
         problem = nil
         titleField.stringValue = ""
@@ -231,12 +228,11 @@ final class WritePanel: NSView {
         reader.stop()
         setPhase(.working)
         let said = transcriber.transcript
-        let style = self.style
         let context = self.context
         task?.cancel()
         task = Task { [weak self] in
             do {
-                let result = try await PolarisAPI.write(said, style: style, context: context)
+                let result = try await PolarisAPI.write(said, context: context)
                 guard let self, !Task.isCancelled else { return }
                 self.showResult(result)
             } catch {
@@ -262,17 +258,10 @@ final class WritePanel: NSView {
                 : error?.localizedDescription ?? "Something went wrong"
             textView.isEditable = false
             textView.textStorage?.setAttributedString(settings.styled("⚠️ " + message))
-            setStatus("Try another style, or keep talking.")
+            setStatus("Tap Keep talking, then Done to try again.")
             saveChip?.isEnabled = false
         }
         textView.scrollToBeginningOfDocument(nil)
-    }
-
-    @objc private func styleTapped(_ sender: NSButton) {
-        guard phase == .result, let picked = WriteStyle.allCases.first(where: { $0.title == sender.identifier?.rawValue }) else { return }
-        style = picked
-        rebuildStyleRow()
-        writeNote()
     }
 
     @objc private func keepTalking() {
@@ -380,7 +369,6 @@ final class WritePanel: NSView {
         micButton.isHidden = !recording
         level.isHidden = !recording
         doneChip?.isHidden = !recording
-        styleRow.isHidden = !result
         titleField.isHidden = !result
         actionRow.isHidden = !result
         catalogBox.isHidden = !result
@@ -432,18 +420,6 @@ final class WritePanel: NSView {
         actionRow.subviews.forEach { $0.removeFromSuperview() }
         actionRow.addSubview(Chip.make("Keep talking", symbol: "mic", settings: settings, target: self, action: #selector(keepTalking)))
         actionRow.addSubview(Chip.make("Copy", symbol: "doc.on.doc", settings: settings, target: self, action: #selector(copyNote)))
-        rebuildStyleRow()
-    }
-
-    private func rebuildStyleRow() {
-        styleRow.subviews.forEach { $0.removeFromSuperview() }
-        for s in WriteStyle.allCases {
-            let chip = Chip.make(s.title, filled: s == style, settings: settings, target: self, action: #selector(styleTapped(_:)))
-            chip.identifier = NSUserInterfaceItemIdentifier(s.title)
-            chip.toolTip = "Rewrite as \(s.title.lowercased())"
-            styleRow.addSubview(chip)
-        }
-        needsLayout = true
     }
 
     private func setStatus(_ s: String) { status.attributedStringValue = small(s) }
@@ -483,7 +459,7 @@ final class WritePanel: NSView {
     // MARK: - Layout (frames by hand, like the rest of the popup)
 
     /// Top to bottom: Back (drawn by Popup) and 🔊, the header, then either
-    /// [transcript | mic, status, Done] or [styles, title, note, Keep talking/Copy, catalog + Save].
+    /// [transcript | mic, status, Done] or [title, note, Keep talking/Copy, catalog + Save].
     override func layout() {
         super.layout()
         let w = bounds.width, pad: CGFloat = 12, topBar: CGFloat = 36, gap: CGFloat = 8
@@ -520,9 +496,6 @@ final class WritePanel: NSView {
             actionRow.frame = NSRect(x: pad, y: bottom, width: w - pad * 2, height: flow(actionRow, width: w - pad * 2))
             bottom += actionRow.frame.height + gap
 
-            let styleH = flow(styleRow, width: w - pad * 2)
-            styleRow.frame = NSRect(x: pad, y: top - styleH, width: w - pad * 2, height: styleH)
-            top -= styleH + gap
             titleField.frame = NSRect(x: pad, y: top - fieldH, width: w - pad * 2, height: fieldH)
             top -= fieldH + 2
         }

@@ -1,17 +1,13 @@
 // Write: turns what the user said out loud into clear writing.
 //
 // The Mac app transcribes speech on-device (Apple speech recognition) and sends the transcript,
-// plus the text the user had selected (if any) as context. Gemini returns a title, the note in
-// the chosen style, and the catalog it best fits.
+// plus the text the user had selected (if any) as context. Gemini returns a title, the notes,
+// and the catalog they best fit.
 
 import { generateJSON, type GeminiSchema } from "./gemini";
 
-export const WRITE_STYLES = ["notes", "todo", "paragraph", "email"] as const;
-export type WriteStyle = (typeof WRITE_STYLES)[number];
-
 export type WriteInput = {
   transcript: string;
-  style?: WriteStyle;
   /** Text the user had selected when they started, so the note can be about it. */
   selection?: string | null;
   pageTitle?: string | null;
@@ -25,13 +21,6 @@ export type WriteResult = {
   note: string;
   /** An existing catalog's exact name, a suggested new name, or "". */
   catalog: string;
-};
-
-const STYLE_GUIDE: Record<WriteStyle, string> = {
-  notes: `Notes: one or two short sentences summing up, then each key point on its own line starting with "• ".`,
-  todo: `A to-do list: each task on its own line starting with "☐ ", in a sensible order, keeping any dates or details they said.`,
-  paragraph: "One or two clear paragraphs in the first person, as if they wrote it themselves.",
-  email: "A short, friendly email in the first person: a greeting line, the body, and a sign-off with no name.",
 };
 
 const LEVEL_GUIDE: Record<string, string> = {
@@ -63,7 +52,6 @@ const MAX = { transcript: 20_000, selection: 4_000, title: 300, catalogs: 100 };
 const clip = (s: string | null | undefined, n: number) => (s ?? "").slice(0, n).trim();
 
 export async function write(input: WriteInput): Promise<WriteResult> {
-  const style: WriteStyle = WRITE_STYLES.includes(input.style as WriteStyle) ? (input.style as WriteStyle) : "notes";
   const catalogs = (input.catalogs ?? []).slice(0, MAX.catalogs);
   const selection = clip(input.selection, MAX.selection);
   const pageTitle = clip(input.pageTitle, MAX.title);
@@ -72,7 +60,7 @@ export async function write(input: WriteInput): Promise<WriteResult> {
     pageTitle && `PAGE TITLE: ${pageTitle}`,
     selection && `SELECTED TEXT:\n${selection}`,
     `EXISTING CATALOGS: ${catalogs.length ? catalogs.map((c) => `"${c}"`).join(", ") : "(none yet)"}`,
-    `WRITE IT AS: ${STYLE_GUIDE[style]}`,
+    `WRITE IT AS: notes. One or two short sentences summing up, then each key point on its own line starting with "• ".`,
     LEVEL_GUIDE[input.readingLevel ?? ""] ?? LEVEL_GUIDE.standard,
     `TRANSCRIPT:\n${clip(input.transcript, MAX.transcript)}`,
   ]

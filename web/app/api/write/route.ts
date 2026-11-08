@@ -1,5 +1,5 @@
 // POST /api/write — the Mac's Write feature: turn a spoken transcript into a note.
-// Body: { transcript, style?, selection?, pageTitle? } → { title, note, catalog } (see lib/ai/write.ts).
+// Body: { transcript, selection?, pageTitle? } → { title, note, catalog } (see lib/ai/write.ts).
 import { write } from "@/lib/ai/write";
 import { aiErrorResponse } from "@/lib/ai/gemini";
 import { listCatalogs } from "@/lib/catalogs";
@@ -23,7 +23,6 @@ export async function POST(req: Request) {
   try {
     return Response.json(await write({
       transcript: body.transcript,
-      style: body.style,
       selection: typeof body.selection === "string" ? body.selection : null,
       pageTitle: typeof body.pageTitle === "string" ? body.pageTitle : null,
       catalogs: catalogs.map((c) => c.name),

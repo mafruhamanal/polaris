@@ -17,20 +17,6 @@ struct WriteResult: Decodable {
     let catalog: String
 }
 
-/// How Write lays out the note. Raw values match the web's WRITE_STYLES.
-enum WriteStyle: String, CaseIterable {
-    case notes, todo, paragraph, email
-
-    var title: String {
-        switch self {
-        case .notes: return "Notes"
-        case .todo: return "To-do"
-        case .paragraph: return "Paragraph"
-        case .email: return "Email"
-        }
-    }
-}
-
 /// ElevenLabs audio and when each word starts (POST /api/speak).
 struct Speech: Decodable {
     struct Word: Decodable {
@@ -87,14 +73,13 @@ enum PolarisAPI {
         return try JSONDecoder().decode(Response.self, from: data).text
     }
 
-    static func write(_ transcript: String, style: WriteStyle, context: SelectionContext?) async throws -> WriteResult {
+    static func write(_ transcript: String, context: SelectionContext?) async throws -> WriteResult {
         struct Body: Encodable {
             let transcript: String
-            let style: String
             let selection: String?
             let pageTitle: String?
         }
-        let body = Body(transcript: transcript, style: style.rawValue,
+        let body = Body(transcript: transcript,
                         selection: context?.selection, pageTitle: context?.pageTitle)
         let data = try await send("api/write", method: "POST", body: try JSONEncoder().encode(body))
         return try JSONDecoder().decode(WriteResult.self, from: data)
