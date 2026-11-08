@@ -12,12 +12,15 @@ import ApplicationServices
     private var sourceApp: String?
     private var monitors: [Any] = []
     private var statusItem: NSStatusItem?
+    private var isConfirmingExit = false
+    private let conversationSaver = ConversationSaver()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popup.onAction = { [weak self] action in self?.run(action) }
         popup.onBack = { [weak self] in self?.goBack() }
         popup.ask.onAsk = { [weak self] question in self?.ask(question) }
         popup.ask.onSimplify = { [weak self] in self?.simplify() }
+        popup.ask.onTurnsChanged = { [weak self] in self?.saveConversation() }
         FontLoader.registerBundledFonts()
         setUpMenuBar()
         Task { await SettingsStore.shared.refresh() }
@@ -41,7 +44,7 @@ import ApplicationServices
         }) { monitors.append(m) }
 
         if let m = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown], handler: { [weak self] _ in
-            Task { @MainActor in self?.dismiss() }
+            Task { @MainActor in self?.clickedAway() }
         }) { monitors.append(m) }
 
         if let m = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] e in
@@ -64,6 +67,24 @@ import ApplicationServices
         }) { monitors.append(m) }
 
         print("✅ Polaris running (web app: \(Config.apiBaseURL.absoluteString)). Select text, then draw a quick circle with your cursor.")
+    }
+
+    /// A click outside the popup. In the middle of a session (Ask, Write, reading) that could be an
+    /// accident, so check first; the bare menu and plain messages just close.
+    private func clickedAway() {
+        guard popup.isVisible else { return }
+        guard popup.canGoBack else { dismiss(); return }
+        guard !isConfirmingExit else { return }
+        isConfirmingExit = true
+        defer { isConfirmingExit = false }
+
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "Are you sure you want to exit this session?"
+        alert.informativeText = "Your conversation will be closed."
+        alert.addButton(withTitle: "Keep Going") // the default, so Return doesn't close it by accident
+        alert.addButton(withTitle: "Exit")
+        if alert.runModal() == .alertSecondButtonReturn { dismiss() }
     }
 
     private func dismiss() {
@@ -119,7 +140,10 @@ import ApplicationServices
                 popup.showReader(selection)
             }
         case .ask:
-            if selection != nil { popup.showAsk(context: context) }
+            if selection != nil {
+                conversationSaver.startSession()
+                popup.showAsk(context: context)
+            }
         case .write:
             popup.showWrite(context: context, sourceApp: sourceApp)
         case .screenshot:
@@ -143,6 +167,12 @@ import ApplicationServices
                 self?.popup.showText(error.localizedDescription, near: NSEvent.mouseLocation)
             }
         }
+    }
+
+    /// Keeps the whole Ask conversation in Saved Responses, updated after every answer.
+    private func saveConversation() {
+        conversationSaver.save(turns: popup.ask.history, selection: context?.selection ?? "",
+                               app: sourceApp, window: context?.pageTitle)
     }
 
     private func ask(_ question: String) {

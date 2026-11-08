@@ -15,6 +15,9 @@ final class AskPanel: NSView {
     var onSimplify: (() -> Void)?
 
     /// Earlier questions and answers, sent with each new question so follow-ups make sense.
+    /// Called after each answer is added to the conversation (so it can be saved).
+    var onTurnsChanged: (() -> Void)?
+
     var history: [(question: String, answer: String)] {
         turns.map { ($0.question, $0.result.answer) }
     }
@@ -115,6 +118,7 @@ final class AskPanel: NSView {
 
     func show(_ result: AskResult, for question: String) {
         turns.append((question, result))
+        defer { onTurnsChanged?() }
         field.isEnabled = true
         render()
         setSuggestions(result.suggestions.isEmpty ? (suggestions.isEmpty ? Self.starters : suggestions) : result.suggestions)
