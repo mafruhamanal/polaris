@@ -40,3 +40,7 @@ since the free local signature changes each build).
 Write (the 🎙 circle, or ★ → Write a Note…) asks for the microphone and speech recognition the
 first time; it only works in the built app, not `swift run`. Read aloud uses your ElevenLabs
 voice from the quiz when the web app has `ELEVENLABS_API_KEY`, and the Mac's voices otherwise.
+
+Screenshot (the 📷 circle, or ★ → Screenshot…) lets you drag over part of the screen; its text is
+read on the Mac and used by Read aloud, Ask/Simplify and Write. It needs Screen Recording
+permission (System Settings → Privacy & Security → Screen & System Audio Recording).

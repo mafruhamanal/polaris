@@ -1,7 +1,7 @@
 // POST /api/write — the Mac's Write feature: turn a spoken transcript into a note.
-// Body: { transcript, selection?, pageTitle? } → { title, note, catalog } (see lib/ai/write.ts).
+// Body: { transcript, selection?, pageTitle?, image? } → { title, note, catalog } (see lib/ai/write.ts).
 import { write } from "@/lib/ai/write";
-import { aiErrorResponse } from "@/lib/ai/gemini";
+import { aiErrorResponse, imageFrom } from "@/lib/ai/gemini";
 import { listCatalogs } from "@/lib/catalogs";
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       pageTitle: typeof body.pageTitle === "string" ? body.pageTitle : null,
       catalogs: catalogs.map((c) => c.name),
       readingLevel: level[0]?.reading_level ?? null,
+      image: imageFrom(body.image),
     }));
   } catch (e) {
     return aiErrorResponse(e);

@@ -4,7 +4,7 @@
 // exposes it) and the window title. Gemini answers in JSON; we then keep only the
 // evidence quotes that really appear in the text, so the Mac never highlights made-up quotes.
 
-import { generateJSON, type GeminiSchema } from "./gemini";
+import { generateJSON, SCREENSHOT_NOTE, type GeminiSchema } from "./gemini";
 
 export type AskInput = {
   question: string;
@@ -14,6 +14,8 @@ export type AskInput = {
   pageTitle?: string | null;
   /** Earlier questions and answers about the same selection, oldest first. */
   history?: { question: string; answer: string }[] | null;
+  /** Base64 JPEG when the "selection" came from a screenshot (it's the recognized text). */
+  image?: string | null;
 };
 
 export type AskResult = {
@@ -70,15 +72,18 @@ export async function ask(input: AskInput): Promise<AskResult> {
   const prompt = [
     pageTitle && `PAGE TITLE: ${pageTitle}`,
     before && `TEXT BEFORE:\n${before}`,
-    `SELECTED TEXT (main focus):\n${selection}`,
+    `SELECTED TEXT (main focus):\n${selection || "(no text was recognized; answer from the screenshot)"}`,
     after && `TEXT AFTER:\n${after}`,
+    input.image && SCREENSHOT_NOTE,
     history && `EARLIER IN THIS CONVERSATION:\n${history}`,
     `QUESTION: ${question}`,
   ]
     .filter(Boolean)
     .join("\n\n");
 
-  const raw = await generateJSON<Partial<AskResult>>({ system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.2 });
+  const raw = await generateJSON<Partial<AskResult>>({
+    system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.2, image: input.image,
+  });
 
   // Keep only quotes that really appear in the text we sent.
   const source = normalize([before, selection, after].join(" "));

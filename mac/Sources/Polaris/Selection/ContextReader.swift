@@ -9,6 +9,8 @@ struct SelectionContext {
     let before: String?
     let after: String?
     let pageTitle: String?
+    /// Base64 JPEG when this came from a screenshot (then `selection` is the text recognized in it).
+    var screenshot: String? = nil
 }
 
 @MainActor

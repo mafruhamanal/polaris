@@ -81,6 +81,7 @@ import ApplicationServices
         Task { await SettingsStore.shared.refresh(ifOlderThan: 10) }
 
         sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName
+        popup.setThumbnail(nil)
         currentTask = Task { [weak self] in
             guard let self else { return }
             guard AXIsProcessTrusted() else {
@@ -111,11 +112,36 @@ import ApplicationServices
         currentTask?.cancel()
         switch action {
         case .read:
-            if let selection { popup.showReader(selection) }
+            if let selection, selection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                popup.showText("No text found in this screenshot. Try Ask: it can describe pictures and charts.",
+                               canGoBack: true)
+            } else if let selection {
+                popup.showReader(selection)
+            }
         case .ask:
             if selection != nil { popup.showAsk(context: context) }
         case .write:
             popup.showWrite(context: context, sourceApp: sourceApp)
+        case .screenshot:
+            takeScreenshot()
+        }
+    }
+
+    /// Drag over part of the screen; its text (and image) then stands in for the selection.
+    private func takeScreenshot() {
+        currentTask?.cancel()
+        popup.hide()
+        currentTask = Task { [weak self] in
+            do {
+                guard let shot = try await Screenshot.take(), let self, !Task.isCancelled else { return }
+                self.selection = shot.text
+                self.context = SelectionContext(selection: shot.text, before: nil, after: nil,
+                                                pageTitle: "Screenshot", screenshot: shot.jpeg)
+                self.popup.setThumbnail(NSImage(cgImage: shot.image, size: .zero))
+                self.popup.showMenu(near: NSEvent.mouseLocation, hasSelection: true)
+            } catch {
+                self?.popup.showText(error.localizedDescription, near: NSEvent.mouseLocation)
+            }
         }
     }
 
@@ -132,8 +158,11 @@ import ApplicationServices
     private func simplify() {
         guard let selection else { return }
         let title = context?.pageTitle
+        let image = context?.screenshot
         let app = NSWorkspace.shared.frontmostApplication?.localizedName
-        inAsk(AskPanel.simplifyQuestion) { try await PolarisAPI.simplify(selection, app: app, title: title) } show: { text in
+        inAsk(AskPanel.simplifyQuestion) {
+            try await PolarisAPI.simplify(selection, app: app, title: title, image: image)
+        } show: { text in
             self.popup.ask.showSimplified(text.isEmpty ? "(Empty response)" : text)
         }
     }
@@ -197,6 +226,7 @@ import ApplicationServices
         status.isEnabled = false
         menu.addItem(status)
         menu.addItem(item("Write a Note…", #selector(writeNote)))
+        menu.addItem(item("Screenshot…", #selector(screenshotFromMenu)))
         menu.addItem(.separator())
         if connected {
             menu.addItem(item("Refresh Reading Settings", #selector(refreshSettings)))
@@ -217,11 +247,18 @@ import ApplicationServices
 
     @objc private func connect() { AccountLink.openConnectPage() }
 
+    /// Screenshot without circling; the feature menu opens where the capture ends.
+    @objc private func screenshotFromMenu() {
+        sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName
+        takeScreenshot()
+    }
+
     /// Write without circling: opens near the menu bar, not about any selection.
     @objc private func writeNote() {
         currentTask?.cancel()
         selection = nil
         context = nil
+        popup.setThumbnail(nil)
         popup.showWrite(context: nil, sourceApp: nil, near: NSEvent.mouseLocation)
     }
 

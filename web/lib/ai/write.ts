@@ -4,7 +4,7 @@
 // plus the text the user had selected (if any) as context. Gemini returns a title, the notes,
 // and the catalog they best fit.
 
-import { generateJSON, type GeminiSchema } from "./gemini";
+import { generateJSON, SCREENSHOT_NOTE, type GeminiSchema } from "./gemini";
 
 export type WriteInput = {
   transcript: string;
@@ -14,6 +14,8 @@ export type WriteInput = {
   /** Names of the user's existing catalogs. */
   catalogs?: string[];
   readingLevel?: string | null;
+  /** Base64 JPEG screenshot they were looking at; `selection` is its recognized text. */
+  image?: string | null;
 };
 
 export type WriteResult = {
@@ -59,6 +61,7 @@ export async function write(input: WriteInput): Promise<WriteResult> {
   const prompt = [
     pageTitle && `PAGE TITLE: ${pageTitle}`,
     selection && `SELECTED TEXT:\n${selection}`,
+    input.image && SCREENSHOT_NOTE,
     `EXISTING CATALOGS: ${catalogs.length ? catalogs.map((c) => `"${c}"`).join(", ") : "(none yet)"}`,
     `WRITE IT AS: notes. One or two short sentences summing up, then each key point on its own line starting with "• ".`,
     LEVEL_GUIDE[input.readingLevel ?? ""] ?? LEVEL_GUIDE.standard,
@@ -67,7 +70,9 @@ export async function write(input: WriteInput): Promise<WriteResult> {
     .filter(Boolean)
     .join("\n\n");
 
-  const result = await generateJSON<WriteResult>({ system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.3 });
+  const result = await generateJSON<WriteResult>({
+    system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.3, image: input.image,
+  });
 
   // Use the existing catalog's exact spelling if Gemini picked one with different capitalization.
   const suggested = (result.catalog ?? "").trim();

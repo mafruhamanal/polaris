@@ -393,8 +393,7 @@ final class WritePanel: NSView {
 
     private func applySettings() {
         let color = settings.textColor
-        header.attributedStringValue = small(context.map { "About your selection: “\(Self.preview($0.selection))”" }
-            ?? "Say what's on your mind and I'll write it up.")
+        header.attributedStringValue = small(Self.headerText(for: context))
         titleField.font = NSFontManager.shared.convert(settings.font, toHaveTrait: .boldFontMask)
         titleField.textColor = color
         textView.typingAttributes = settings.textAttributes
@@ -449,6 +448,15 @@ final class WritePanel: NSView {
         styled.addAttribute(.foregroundColor, value: settings.textColor.withAlphaComponent(0.45),
                             range: NSRange(location: 0, length: styled.length))
         return styled
+    }
+
+    private static func headerText(for context: SelectionContext?) -> String {
+        guard let context else { return "Say what's on your mind and I'll write it up." }
+        let text = preview(context.selection)
+        if context.screenshot != nil {
+            return text.isEmpty ? "About your screenshot" : "About your screenshot: “\(text)”"
+        }
+        return "About your selection: “\(text)”"
     }
 
     private static func preview(_ s: String) -> String {
