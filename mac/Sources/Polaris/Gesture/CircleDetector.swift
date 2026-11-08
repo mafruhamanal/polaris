@@ -1,4 +1,5 @@
-// Detects the circle cursor gesture that triggers Polaris.
+// Detects the circle cursor gesture that triggers Polaris: three loops in a row, so ordinary
+// mouse movement doesn't set it off by accident.
 import Foundation
 
 final class CircleDetector {
@@ -6,7 +7,9 @@ final class CircleDetector {
     private var pts: [P] = []
     private var lastFire: TimeInterval = 0
 
-    let window: TimeInterval = 1.0
+    /// Full loops needed, and how long the user has to draw them.
+    let turns: CGFloat = 3
+    let window: TimeInterval = 2.0
     let cooldown: TimeInterval = 1.5
     let minSize: CGFloat = 40
     let maxSize: CGFloat = 600
@@ -37,7 +40,7 @@ final class CircleDetector {
             }
             prevHeading = heading
 
-            if abs(total) >= 2 * .pi {
+            if abs(total) >= turns * 2 * .pi {
                 let run = pts[runStart...i]
                 let xs = run.map(\.x), ys = run.map(\.y)
                 let w = xs.max()! - xs.min()!, h = ys.max()! - ys.min()!
