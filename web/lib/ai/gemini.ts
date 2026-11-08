@@ -17,8 +17,8 @@ export class GeminiError extends Error {
   }
 }
 
-/** Up to ~6 MB of base64: a downscaled screenshot from the Mac. */
-const MAX_IMAGE_CHARS = 8_000_000;
+/** Up to ~3 MB of base64 (a downscaled screenshot from the Mac); Vercel rejects request bodies over 4.5 MB. */
+const MAX_IMAGE_CHARS = 3_000_000;
 
 /** The request's base64 JPEG screenshot if it looks valid, else null. */
 export function imageFrom(value: unknown): string | null {
