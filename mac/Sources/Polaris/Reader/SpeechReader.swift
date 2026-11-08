@@ -36,6 +36,10 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
     /// Called with the range of the current word, or nil when reading stops.
     var onWord: ((NSRange?) -> Void)?
     var onStateChange: ((Bool) -> Void)?
+    /// While getting ready to speak (preparing the text, downloading ElevenLabs audio): called with
+    /// the word reading will start from, then with nil once speech starts or is cancelled.
+    var onLoading: ((NSRange?) -> Void)?
+    private(set) var isLoading = false
 
     /// Speed multiplier (1.0 = normal) and voice, from the user's reading settings.
     var rate: Float = 1.0 {
@@ -78,6 +82,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         if usesElevenLabs { playElevenLabs(); return }
         if synth.isPaused && !needsRestart {
             synth.continueSpeaking()
+            setLoading(false)
             setPlaying(true)
         } else {
             speak(from: index)
@@ -95,6 +100,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         }
         // Show "playing" while we wait, like the ElevenLabs download.
         setPlaying(true)
+        setLoading(true)
         let requested = text
         prep = Task { [weak self] in
             let edits = (try? await PolarisAPI.speechEdits(requested as String)) ?? []
@@ -114,6 +120,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         player?.pause()
         stopTicker()
         synth.pauseSpeaking(at: .word)
+        setLoading(false)
         setPlaying(false)
     }
 
@@ -128,6 +135,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         synth.stopSpeaking(at: .immediate)
         index = 0
         needsRestart = true
+        setLoading(false)
         setPlaying(false)
         onWord?(nil)
     }
@@ -225,6 +233,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         utterance = u
         needsRestart = false
         synth.speak(u)
+        setLoading(false)
         setPlaying(true)
         onWord?(words[i])
     }
@@ -247,6 +256,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
             needsRestart = false
             player.play()
             startTicker()
+            setLoading(false)
             setPlaying(true)
             onWord?(words[index])
             return
@@ -254,6 +264,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         guard fetch == nil, let voice = voiceIdentifier else { return }
         // Show "playing" while the audio downloads; the first word lights up when it starts.
         setPlaying(true)
+        setLoading(true)
         let requested = text
         let toSpeak = spoken as String
         fetch = Task { [weak self] in
@@ -288,6 +299,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         if index < wordTimes.count { player.currentTime = wordTimes[index] }
         player.play()
         startTicker()
+        setLoading(false)
         onWord?(words[index])
     }
 
@@ -346,6 +358,12 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
 
     // MARK: - Shared
 
+    private func setLoading(_ loading: Bool) {
+        guard loading != isLoading else { return }
+        isLoading = loading
+        onLoading?(loading && index < words.count ? words[index] : nil)
+    }
+
     private func setPlaying(_ playing: Bool) {
         guard playing != isPlaying else { return }
         isPlaying = playing
@@ -368,6 +386,7 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         stopTicker()
         index = 0
         needsRestart = true
+        setLoading(false)
         setPlaying(false)
         onWord?(nil)
     }

@@ -28,6 +28,7 @@ final class AskPanel: NSView {
     private let scroll = NSScrollView()
     private let textView = NSTextView()
     private let speakButton = FirstClickButton()
+    private let spinner = Spinner()
     private let reader = SpeechReader()
     private let highlighter: WordHighlighter
     private var turns: [(question: String, result: AskResult)] = []
@@ -81,6 +82,20 @@ final class AskPanel: NSView {
             })
         }
         reader.onStateChange = { [weak self] playing in self?.setSpeaking(playing) }
+        // While the voice gets ready: spinner in the 🔊 button, and the answer's first word pulses.
+        reader.onLoading = { [weak self] range in
+            guard let self else { return }
+            if let range {
+                self.speakButton.image = nil
+                self.speakButton.toolTip = "Getting voice ready… (click to cancel)"
+                self.spinner.show(in: self.speakButton)
+                self.highlighter.showPending(NSRange(location: range.location + self.answerRange.location, length: range.length))
+            } else {
+                self.spinner.hide()
+                self.highlighter.clear()
+                self.setSpeaking(self.reader.isPlaying)
+            }
+        }
     }
 
     required init?(coder: NSCoder) { fatalError() }
