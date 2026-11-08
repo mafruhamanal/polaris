@@ -92,12 +92,20 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate {
         let u = AVSpeechUtterance(string: text.substring(from: utteranceOffset))
         u.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                      max(AVSpeechUtteranceMinimumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * rate))
-        if let id = voiceIdentifier { u.voice = AVSpeechSynthesisVoice(identifier: id) }
+        if let id = voiceIdentifier { u.voice = Self.voice(id) }
         utterance = u
         needsRestart = false
         synth.speak(u)
         setPlaying(true)
         onWord?(words[i])
+    }
+
+    /// The voice with this identifier, or one with the same name (the web's list says
+    /// "compact" but a Mac may have the "super-compact" or "premium" version). nil = system voice.
+    private static func voice(_ id: String) -> AVSpeechSynthesisVoice? {
+        if let exact = AVSpeechSynthesisVoice(identifier: id) { return exact }
+        guard let name = id.split(separator: ".").last.map(String.init) else { return nil }
+        return AVSpeechSynthesisVoice.speechVoices().first { $0.name == name }
     }
 
     private func setPlaying(_ playing: Bool) {

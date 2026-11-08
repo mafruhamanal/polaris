@@ -142,13 +142,13 @@ final class Popup {
     }
 
     /// The Ask view: question box focused so the user can type right away.
-    func showAsk() {
+    func showAsk(context: SelectionContext?) {
         stopReading()
         layoutContent(back: true, readerControls: false, size: askSize)
         scroll.isHidden = true
         ask.isHidden = false
         ask.frame = NSRect(origin: .zero, size: askSize)
-        ask.reset()
+        ask.reset(context: context)
         panel.orderFrontRegardless()
         panel.makeKey()
         panel.makeFirstResponder(ask.field)

@@ -23,16 +23,20 @@ enum PolarisAPI {
         }
     }
 
-    static func ask(_ question: String, context: SelectionContext) async throws -> AskResult {
+    static func ask(_ question: String, context: SelectionContext,
+                    history: [(question: String, answer: String)] = []) async throws -> AskResult {
+        struct Turn: Encodable { let question: String; let answer: String }
         struct Body: Encodable {
             let question: String
             let selection: String
             let before: String?
             let after: String?
             let pageTitle: String?
+            let history: [Turn]
         }
         let body = Body(question: question, selection: context.selection, before: context.before,
-                        after: context.after, pageTitle: context.pageTitle)
+                        after: context.after, pageTitle: context.pageTitle,
+                        history: history.map { Turn(question: $0.question, answer: $0.answer) })
         let data = try await send("api/ask", method: "POST", body: try JSONEncoder().encode(body))
         return try JSONDecoder().decode(AskResult.self, from: data)
     }

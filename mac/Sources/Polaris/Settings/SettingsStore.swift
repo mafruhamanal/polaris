@@ -21,9 +21,14 @@ final class SettingsStore {
 
     private var testMode: Bool { ProcessInfo.processInfo.environment["POLARIS_TEST_SETTINGS"] != nil }
 
+    private var lastRefresh: Date?
+
     /// Fetches the user's settings from the web app (no-op if not connected or in test mode).
-    func refresh() async {
+    /// With `ifOlderThan`, skips the request if the last one was that many seconds ago or less.
+    func refresh(ifOlderThan seconds: TimeInterval? = nil) async {
         guard !testMode, AccountLink.isConnected else { return }
+        if let seconds, let lastRefresh, Date().timeIntervalSince(lastRefresh) < seconds { return }
+        lastRefresh = Date()
         do {
             update(try await PolarisAPI.settings())
         } catch {

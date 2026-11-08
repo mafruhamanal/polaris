@@ -1,5 +1,5 @@
 // POST /api/ask — answer a question about the user's selected text (called by the Mac app).
-// Body: { question, selection, before?, after?, pageTitle? } → AskResult (see lib/ai/ask.ts).
+// Body: { question, selection, before?, after?, pageTitle?, history? } → AskResult (see lib/ai/ask.ts).
 import { ask } from "@/lib/ai/ask";
 import { GeminiError } from "@/lib/ai/gemini";
 import { getUserId } from "@/lib/getUserId";

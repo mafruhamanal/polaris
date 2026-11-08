@@ -78,6 +78,8 @@ import ApplicationServices
         let location = NSEvent.mouseLocation
         currentTask?.cancel()
         popup.hide()
+        // Pick up settings saved on the web (quiz, settings page) since we last checked.
+        Task { await SettingsStore.shared.refresh(ifOlderThan: 10) }
 
         currentTask = Task { [weak self] in
             guard let self else { return }
@@ -109,7 +111,7 @@ import ApplicationServices
         case .read:
             popup.showReader(selection)
         case .ask:
-            popup.showAsk()
+            popup.showAsk(context: context)
         case .simplify:
             streamAI(selection, prompt: Config.simplifyPrompt(level: SettingsStore.shared.settings.readingLevel))
         }
@@ -118,18 +120,19 @@ import ApplicationServices
     private func ask(_ question: String) {
         guard let context else { return }
         currentTask?.cancel()
-        popup.ask.showLoading()
+        let history = popup.ask.history
+        popup.ask.showLoading(question)
         currentTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let result = try await PolarisAPI.ask(question, context: context)
-                if !Task.isCancelled { self.popup.ask.show(result, context: context) }
+                let result = try await PolarisAPI.ask(question, context: context, history: history)
+                if !Task.isCancelled { self.popup.ask.show(result, for: question) }
             } catch is CancellationError {
             } catch let error as URLError where error.code == .cancelled {
             } catch let error as URLError where error.code == .cannotConnectToHost {
-                if !Task.isCancelled { self.popup.ask.showError("Can't reach the Polaris web app at \(Config.apiBaseURL.absoluteString). Is it running?") }
+                if !Task.isCancelled { self.popup.ask.showError("Can't reach the Polaris web app at \(Config.apiBaseURL.absoluteString). Is it running?", question: question) }
             } catch {
-                if !Task.isCancelled { self.popup.ask.showError(error.localizedDescription) }
+                if !Task.isCancelled { self.popup.ask.showError(error.localizedDescription, question: question) }
             }
         }
     }
