@@ -134,6 +134,17 @@ final class WordHelp: NSObject, NSPopoverDelegate {
             parts.append(ns.substring(with: NSRange(location: start, length: b - start)))
             start = b
         }
-        return parts.isEmpty ? [word] : parts
+        // Hyphenation points aren't always syllables ("chloroplas-ts"): a piece with no vowel joins
+        // the one before it.
+        let vowels = CharacterSet(charactersIn: "aeiouyAEIOUY")
+        var merged: [String] = []
+        for part in parts {
+            if !merged.isEmpty, part.rangeOfCharacter(from: vowels) == nil {
+                merged[merged.count - 1] += part
+            } else {
+                merged.append(part)
+            }
+        }
+        return merged.isEmpty ? [word] : merged
     }
 }

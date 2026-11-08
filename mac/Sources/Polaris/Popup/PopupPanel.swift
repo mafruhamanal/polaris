@@ -557,24 +557,21 @@ private final class CircleButton: NSView {
         super.init(frame: NSRect(origin: .zero, size: Self.cellSize(diameter)))
         toolTip = title
 
-        let side = bounds.width
         glow.wantsLayer = true
-        glow.layer?.cornerRadius = side / 2
         glow.layer?.backgroundColor = color.cgColor
         glow.layer?.shadowColor = color.cgColor
         glow.layer?.shadowRadius = 8
         glow.layer?.shadowOpacity = 0.9
         glow.layer?.shadowOffset = .zero
         glow.alphaValue = 0
-        glow.frame = discFrame(hover: true)
+        setDiscFrame(glow, hover: true)
         addSubview(glow)
 
         disc.wantsLayer = true
-        disc.layer?.cornerRadius = side / 2
         disc.layer?.backgroundColor = color.cgColor
         disc.layer?.borderWidth = 1
         disc.layer?.borderColor = NSColor.white.withAlphaComponent(0.35).cgColor
-        disc.frame = discFrame(hover: false)
+        setDiscFrame(disc, hover: false)
         addSubview(disc)
 
         button.frame = disc.bounds
@@ -612,15 +609,28 @@ private final class CircleButton: NSView {
         return NSRect(x: inset, y: Self.labelHeight + inset, width: side, height: side)
     }
 
+    /// A corner radius bigger than half the side draws a squircle, so it always matches the size.
+    private func setDiscFrame(_ view: NSView, hover: Bool) {
+        let frame = discFrame(hover: hover)
+        view.frame = frame
+        view.layer?.cornerRadius = frame.width / 2
+    }
+
     override func mouseEntered(with event: NSEvent) { setHover(true) }
     override func mouseExited(with event: NSEvent) { setHover(false) }
 
     private func setHover(_ on: Bool) {
         guard isEnabled else { return }
+        let target = discFrame(hover: on)
+        // Round to the bigger size before growing, and to the smaller one after shrinking.
+        if on { disc.layer?.cornerRadius = target.width / 2 }
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.12
-            disc.animator().frame = discFrame(hover: on)
+            disc.animator().frame = target
             glow.animator().alphaValue = on ? 0.55 : 0
+        } completionHandler: { [weak self] in
+            guard let self, !on else { return }
+            self.disc.layer?.cornerRadius = self.disc.frame.width / 2
         }
     }
 
@@ -637,7 +647,7 @@ private final class CircleButton: NSView {
     }
 
     private func setHoverOff() {
-        disc.frame = discFrame(hover: false)
+        setDiscFrame(disc, hover: false)
         glow.alphaValue = 0
     }
 }
@@ -724,13 +734,13 @@ private final class ResizeGrip: NSView {
     override func resetCursorRects() { addCursorRect(bounds, cursor: .crosshair) }
 
     override func draw(_ dirtyRect: NSRect) {
-        NSColor.secondaryLabelColor.withAlphaComponent(0.6).setStroke()
+        SettingsStore.shared.settings.textColor.withAlphaComponent(0.45).setStroke()
         for i in 0..<3 {
             let d = CGFloat(i) * 4 + 3
             let path = NSBezierPath()
             path.move(to: NSPoint(x: bounds.maxX - d, y: 1))
             path.line(to: NSPoint(x: bounds.maxX - 1, y: d))
-            path.lineWidth = 1.2
+            path.lineWidth = 1.5
             path.stroke()
         }
     }
