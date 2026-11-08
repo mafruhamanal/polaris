@@ -215,7 +215,9 @@ final class Popup {
     // MARK: - Layout
 
     private func layoutContent(back: Bool, readerControls: Bool, size: NSSize? = nil) {
-        let size = size ?? contentSize
+        place(size ?? contentSize)
+        // place() may shrink it to fit the screen.
+        let size = panel.frame.size
         canGoBack = back
         menu.isHidden = true
         background.isHidden = false
@@ -224,11 +226,12 @@ final class Popup {
         ask.stop()
         controls.isHidden = !readerControls
         backButton.isHidden = !back
-        place(size)
-        let bar = back || readerControls ? barHeight : 0
-        scroll.frame = NSRect(x: 8, y: 8 + bar, width: size.width - 16, height: size.height - 16 - bar)
+        // Back sits in a bar at the top; the reader's play controls in one at the bottom.
+        let topBar = back ? barHeight : 0, bottomBar = readerControls ? barHeight : 0
+        scroll.frame = NSRect(x: 8, y: 8 + bottomBar, width: size.width - 16,
+                              height: size.height - 16 - topBar - bottomBar)
         controls.frame = NSRect(x: 0, y: 4, width: size.width, height: barHeight)
-        backButton.frame = NSRect(x: 8, y: 4, width: barHeight, height: barHeight)
+        backButton.frame = NSRect(x: 8, y: size.height - barHeight - 4, width: barHeight, height: barHeight)
         let color = SettingsStore.shared.settings.textColor
         background.appearance = SettingsStore.shared.settings.appearance
         ask.appearance = SettingsStore.shared.settings.appearance

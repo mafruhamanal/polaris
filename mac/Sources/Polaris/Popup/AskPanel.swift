@@ -286,14 +286,14 @@ final class AskPanel: NSView {
 
     // MARK: - Layout (frames by hand, like the rest of the popup)
 
+    /// Top to bottom: Back (drawn by Popup) and 🔊, the conversation, suggestion chips, the question box.
     override func layout() {
         super.layout()
-        let w = bounds.width, pad: CGFloat = 12
-        var top = bounds.height - pad
+        let w = bounds.width, pad: CGFloat = 12, topBar: CGFloat = 36
 
-        top -= fieldHeight
-        field.frame = NSRect(x: pad, y: top, width: w - pad * 2 - 32, height: fieldHeight)
-        sendButton.frame = NSRect(x: w - pad - 28, y: top + (fieldHeight - 28) / 2, width: 28, height: 28)
+        field.frame = NSRect(x: pad, y: pad, width: w - pad * 2 - 32, height: fieldHeight)
+        sendButton.frame = NSRect(x: w - pad - 28, y: pad + (fieldHeight - 28) / 2, width: 28, height: 28)
+        var bottom = pad + fieldHeight
 
         // Chips flow left to right and wrap.
         var x: CGFloat = 0, lineY: CGFloat = 0, rowBottom: CGFloat = 0
@@ -313,16 +313,17 @@ final class AskPanel: NSView {
             x += size.width + 6
         }
         let chipsHeight = chips.subviews.isEmpty ? 0 : rowBottom
-        top -= chipsHeight == 0 ? 0 : 8 + chipsHeight
-        chips.frame = NSRect(x: pad, y: top, width: maxWidth, height: chipsHeight)
+        if chipsHeight > 0 { bottom += 8 }
+        chips.frame = NSRect(x: pad, y: bottom, width: maxWidth, height: chipsHeight)
+        bottom += chipsHeight
         // Flip so the first line is on top.
         for (chip, f) in zip(chips.subviews, frames) {
             chip.frame = NSRect(x: f.minX, y: chipsHeight - f.maxY, width: f.width, height: f.height)
         }
 
-        let bottomBar: CGFloat = 36
-        top -= 8
-        scroll.frame = NSRect(x: pad - 4, y: bottomBar, width: w - pad * 2 + 8, height: max(0, top - bottomBar))
-        speakButton.frame = NSRect(x: w - pad - 32, y: 4, width: 32, height: 28)
+        bottom += 8
+        let top = bounds.height - topBar
+        scroll.frame = NSRect(x: pad - 4, y: bottom, width: w - pad * 2 + 8, height: max(0, top - bottom))
+        speakButton.frame = NSRect(x: w - pad - 32, y: top + 4, width: 32, height: 28)
     }
 }
