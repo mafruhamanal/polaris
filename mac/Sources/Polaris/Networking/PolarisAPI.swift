@@ -41,7 +41,7 @@ enum PolarisAPI {
 
         var errorDescription: String? {
             switch self {
-            case .notConnected: return "Connect your account first: click the ★ in the menu bar → Connect Account."
+            case .notConnected: return "Connect your account: click the ★ in the menu bar → Connect Account."
             case .unavailable(let message), .server(let message): return message
             }
         }
@@ -181,7 +181,12 @@ enum PolarisAPI {
 
         let (data, response) = try await URLSession.shared.data(for: req)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-        if status == 401 { throw APIError.notConnected }
+        if status == 401 {
+            // The server doesn't know this token (expired or removed): forget it, so the ★ menu
+            // shows "Not connected" and offers Connect Account instead of failing quietly.
+            if AccountLink.token == token { AccountLink.disconnect() }
+            throw APIError.notConnected
+        }
         guard (200..<300).contains(status) else {
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
             if status == 501 { throw APIError.unavailable(message ?? "Not available") }

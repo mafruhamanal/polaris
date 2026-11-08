@@ -20,6 +20,7 @@ final class WritePanel: NSView {
     /// True after "New catalog" until the name is entered (Return) or a catalog is picked.
     private var namingCatalog = false
     private let speakButton = FirstClickButton()
+    private let spinner = Spinner()
     private var doneChip: NSButton?
     private var saveChip: NSButton?
 
@@ -94,6 +95,20 @@ final class WritePanel: NSView {
         transcriber.onLevel = { [weak self] value in self?.level.doubleValue = Double(value) }
         reader.onWord = { [weak self] range in self?.highlighter.highlight(range) }
         reader.onStateChange = { [weak self] playing in self?.setSpeaking(playing) }
+        // While the voice gets ready: spinner in the 🔊 button, and the note's first word pulses.
+        reader.onLoading = { [weak self] range in
+            guard let self else { return }
+            if let range {
+                self.speakButton.image = nil
+                self.speakButton.toolTip = "Preparing voice… (click to cancel)"
+                self.spinner.show(in: self.speakButton)
+                self.highlighter.showPending(range)
+            } else {
+                self.spinner.hide()
+                self.highlighter.clear()
+                self.setSpeaking(self.reader.isPlaying)
+            }
+        }
     }
 
     required init?(coder: NSCoder) { fatalError() }
