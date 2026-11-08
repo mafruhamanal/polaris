@@ -1,8 +1,8 @@
 // Ask: answers a question about the text the user selected on their Mac.
 //
 // The Mac app sends the selection plus the text just before and after it (when the app
-// exposes it) and the window title. Gemini answers in JSON; we then keep only the
-// evidence quotes that really appear in the text, so the Mac never highlights made-up quotes.
+// exposes it) and the window title. Gemini answers in JSON with a short answer and
+// follow-up suggestions.
 
 import { generateJSON, SCREENSHOT_NOTE, type GeminiSchema } from "./gemini";
 
@@ -24,7 +24,7 @@ export type AskResult = {
   answer: string;
   /** false = general knowledge explaining something the text mentions. */
   fromText: boolean;
-  /** Exact sentences from the text that support the answer (verified). */
+  /** Always empty: kept so Mac builds from before quotes were dropped can still read answers. */
   evidence: string[];
   /** Short follow-up questions for the suggestion chips. */
   suggestions: string[];
@@ -38,7 +38,6 @@ If the question is unrelated to the text, set inScope=false, say kindly that you
 This is a quick back-and-forth chat, so keep the "answer" SHORT: 1 or 2 short sentences, about 30 words at most. Give the direct answer first and nothing extra: no introduction, no repeating the question, no list of points, no extra background. The reader can always ask a follow-up for more.
 Only go longer (at most about 60 words) if the question truly needs a step-by-step explanation.
 Use short sentences and plain words. No Markdown.
-"evidence" must be exact sentences copied from the provided text (at most 3). Leave it empty if none apply.
 "suggestions" are up to 3 short follow-up questions about the text, under 8 words each.`;
 
 const SCHEMA: GeminiSchema = {
@@ -47,17 +46,15 @@ const SCHEMA: GeminiSchema = {
     inScope: { type: "BOOLEAN" },
     answer: { type: "STRING" },
     fromText: { type: "BOOLEAN" },
-    evidence: { type: "ARRAY", items: { type: "STRING" } },
     suggestions: { type: "ARRAY", items: { type: "STRING" } },
   },
-  required: ["inScope", "answer", "fromText", "evidence", "suggestions"],
+  required: ["inScope", "answer", "fromText", "suggestions"],
 };
 
 /** Caps on what we send to Gemini, so one request can't be huge. */
 const MAX = { question: 500, selection: 20_000, context: 4_000, title: 300, turns: 6, answer: 1_500 };
 
 const clip = (s: string | null | undefined, n: number) => (s ?? "").slice(0, n).trim();
-const normalize = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 
 export async function ask(input: AskInput): Promise<AskResult> {
   const question = clip(input.question, MAX.question);
@@ -87,15 +84,13 @@ export async function ask(input: AskInput): Promise<AskResult> {
     system: SYSTEM, prompt, schema: SCHEMA, temperature: 0.2, image: input.image,
   });
 
-  // Keep only quotes that really appear in the text we sent.
-  const source = normalize([before, selection, after].join(" "));
   const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 
   return {
     inScope: raw.inScope !== false,
     answer: typeof raw.answer === "string" ? raw.answer : "",
     fromText: raw.fromText !== false,
-    evidence: strings(raw.evidence).filter((q) => q.trim() && source.includes(normalize(q))).slice(0, 3),
+    evidence: [],
     suggestions: strings(raw.suggestions).map((s) => s.trim()).filter(Boolean).slice(0, 3),
   };
 }

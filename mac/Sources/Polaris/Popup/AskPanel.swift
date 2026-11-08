@@ -142,7 +142,7 @@ final class AskPanel: NSView {
 
     /// Adds a Simplify result to the conversation (keeping the current suggestions).
     func showSimplified(_ text: String) {
-        show(AskResult(inScope: true, answer: text, fromText: true, evidence: [], suggestions: []),
+        show(AskResult(inScope: true, answer: text, fromText: true, suggestions: []),
              for: Self.simplifyQuestion)
     }
 
