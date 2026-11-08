@@ -19,6 +19,7 @@ export default async function SettingsPage() {
     fontFamily: rows[0].font_family,
     fontSize: rows[0].font_size,
     letterSpacing: rows[0].letter_spacing,
+    wordSpacing: 0,
     lineSpacing: rows[0].line_spacing,
     background: rows[0].background,
     voice: rows[0].voice,

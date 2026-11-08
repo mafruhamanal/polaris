@@ -1,3 +1,5 @@
+import type React from "react";
+
 type Props = {
   id: string;
   originalText: string;
@@ -6,6 +8,7 @@ type Props = {
   sourceApp?: string | null;
   sourceUrl?: string | null;
   createdAt: string;
+  readingStyle?: React.CSSProperties;
 };
 
 const MODE_STYLE: Record<string, string> = {
@@ -14,7 +17,7 @@ const MODE_STYLE: Record<string, string> = {
   dictation: "bg-purple-100 text-purple-800",
 };
 
-export default function SavedItemCard({ originalText, response, mode, sourceApp, sourceUrl, createdAt }: Props) {
+export default function SavedItemCard({ originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle }: Props) {
   const badge = MODE_STYLE[mode] ?? "bg-gray-100 text-gray-700";
 
   return (
@@ -35,7 +38,7 @@ export default function SavedItemCard({ originalText, response, mode, sourceApp,
 
       <div className="space-y-1">
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Response</p>
-        <p className="text-sm text-gray-900 leading-relaxed">{response.slice(0, 300)}{response.length > 300 ? "…" : ""}</p>
+        <p style={readingStyle} className="leading-relaxed">{response.slice(0, 300)}{response.length > 300 ? "…" : ""}</p>
       </div>
     </div>
   );

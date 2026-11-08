@@ -7,16 +7,16 @@ export default function HomePage() {
       <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
         Every reader needs a north star.
       </h1>
-      <div className="mt-10 flex flex-wrap justify-center gap-3">
+      <div className="mt-10 flex flex-wrap justify-center gap-6">
         <Link
           href="/quiz"
-          className="rounded-full bg-ink px-6 py-3 font-medium text-peach-light transition hover:bg-ink/85"
+          className="rounded-full bg-ink px-12 py-6 text-2xl font-medium text-peach-light transition hover:bg-ink/85"
         >
           Find your reading style
         </Link>
         <Link
           href="/saved"
-          className="rounded-full border-2 border-ink px-6 py-3 font-medium transition hover:bg-ink/5"
+          className="rounded-full border-2 border-ink px-12 py-6 text-2xl font-medium transition hover:bg-ink/5"
         >
           View saved responses
         </Link>
