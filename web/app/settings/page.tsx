@@ -28,10 +28,10 @@ export default async function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6" style={{ zoom: 2/3 }}>
       <div className="flex items-center justify-between">
-        <h1 className="text-4xl font-bold">Your settings</h1>
-        <Link href="/quiz" className="text-xl text-nebula-teal font-medium hover:underline">Retake quiz →</Link>
+        <h1 className="text-4xl font-bold" style={{ zoom: 1.5 }}>Your settings</h1>
+        <Link href="/quiz" className="text-xl text-nebula-teal font-medium hover:underline" style={{ zoom: 2 }}>Retake quiz →</Link>
       </div>
 
       {!hasSettings && (

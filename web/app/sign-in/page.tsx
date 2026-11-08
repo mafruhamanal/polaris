@@ -3,15 +3,13 @@ import { Logo } from "@/components/Logo";
 
 export default function SignInPage() {
   return (
-    <main className="min-h-screen bg-space-deep flex items-center justify-center">
-      <div className="bg-space-mid border border-nebula-teal/10 rounded-3xl shadow-lg shadow-nebula-teal/5 px-12 py-14 flex flex-col items-center gap-8 w-full max-w-md">
-        <Logo className="text-4xl" />
-
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-star-white">Welcome back</h1>
-          <p className="text-star-white">Sign in to access your reading settings and saved responses.</p>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="bg-space-mid border border-white/10 rounded-xl p-8 flex flex-col items-center gap-5 w-full max-w-sm" style={{ zoom: 1.5 }}>
+        <Logo className="text-2xl" />
+        <div className="text-center">
+          <h1 className="text-base font-semibold text-star-white">Sign in to Polaris</h1>
+          <p className="text-sm text-star-dim mt-1">Access your reading settings and saved responses.</p>
         </div>
-
         <form
           action={async () => {
             "use server";
@@ -21,9 +19,9 @@ export default function SignInPage() {
         >
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-3 bg-nebula-teal text-space-deep font-semibold text-lg px-6 py-4 rounded-2xl hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center gap-2 bg-nebula-teal text-space-deep font-medium text-sm px-4 py-2.5 rounded hover:opacity-90 transition-opacity"
           >
-            <svg viewBox="0 0 24 24" className="w-6 h-6" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
@@ -33,6 +31,6 @@ export default function SignInPage() {
           </button>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

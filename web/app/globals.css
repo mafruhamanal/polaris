@@ -1,21 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  /* Space background scale — values driven by CSS vars for theme switching */
   --color-space-deep:    var(--space-deep);
   --color-space-mid:     var(--space-mid);
   --color-space-light:   var(--space-light);
-
-  /* Text */
   --color-star-white:    var(--star-white);
   --color-star-dim:      var(--star-dim);
-
-  /* Accents */
   --color-nebula-teal:   var(--accent);
   --color-nebula-purple: var(--accent-soft);
   --color-nebula-gold:   var(--accent-gold);
-
-  /* Legacy — kept for reading preview surfaces */
   --color-peach:         #ffd9c2;
   --color-peach-light:   #fff3eb;
   --color-ink:           #1f2440;
@@ -24,57 +17,24 @@
   --color-logo:          var(--accent);
 }
 
-/* ── Dark mode (default) ───────────────────────────────────────── */
 :root {
   --space-deep:   #0d0f1e;
   --space-mid:    #131629;
   --space-light:  #1a1f38;
   --star-white:   #eef0ff;
-  --star-dim:     #eef0ff;
-  --accent:       #bd93f9;   /* primary — lavender purple */
-  --accent-soft:  #d4b9ff;   /* lighter purple for secondary states */
+  --star-dim:     #9ca3b0;
+  --accent:       #bd93f9;
+  --accent-soft:  #d4b9ff;
   --accent-gold:  #ffb347;
 }
 
-/* ── Light mode ────────────────────────────────────────────────── */
 [data-theme="light"] {
-  --space-deep:   #fdf4ee;   /* warm cream page bg */
-  --space-mid:    #ffffff;   /* white card surface */
-  --space-light:  #f0e8df;   /* soft warm raised */
-  --star-white:   #1f2440;   /* ink — dark text */
-  --star-dim:     #1f2440;   /* ink — matches star-white for light mode */
-  --accent:       #7c3aed;   /* vivid purple (7:1 on white) */
-  --accent-soft:  #a78bfa;   /* softer purple */
-  --accent-gold:  #d97706;   /* amber-600 */
-}
-
-/* ── Star field (dark mode only) ───────────────────────────────── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    radial-gradient(circle, rgba(238,240,255,0.65) 1px, transparent 1px),
-    radial-gradient(circle, rgba(189,147,249,0.25) 1px, transparent 1px),
-    radial-gradient(circle, rgba(238,240,255,0.35) 1px, transparent 1px);
-  background-size: 320px 320px, 190px 190px, 130px 130px;
-  background-position: 17px 44px, 73px 121px, 39px 88px;
-  transition: opacity 0.3s;
-}
-
-[data-theme="light"] body::before {
-  opacity: 0;
-}
-
-/* ── Smooth theme transition ───────────────────────────────────── */
-body, header {
-  transition: background-color 0.25s, color 0.25s;
-}
-
-/* ── Ensure page content sits above star field ─────────────────── */
-body > * {
-  position: relative;
-  z-index: 1;
+  --space-deep:   #fdf4ee;
+  --space-mid:    #ffffff;
+  --space-light:  #f0e8df;
+  --star-white:   #1f2440;
+  --star-dim:     #4a4e66;
+  --accent:       #7c3aed;
+  --accent-soft:  #a78bfa;
+  --accent-gold:  #d97706;
 }

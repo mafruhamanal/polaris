@@ -80,13 +80,14 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
     <div className="space-y-6">
       {/* Live preview */}
       <div>
-        <p className="text-xl font-medium text-star-white uppercase tracking-wide mb-3">Preview</p>
+        <p className="text-xl font-medium text-star-white uppercase tracking-wide mb-3" style={{ zoom: 1.5 }}>Preview</p>
         <div style={style} className="rounded-2xl p-8 shadow-sm transition-all duration-300">
           <p>{SAMPLE_TEXT}</p>
         </div>
       </div>
 
       {/* Controls */}
+      <div style={{ zoom: 1.5 }}>
       <div className="bg-space-mid rounded-2xl border border-nebula-teal/10 shadow-sm divide-y divide-space-light">
 
         {/* Font */}
@@ -212,6 +213,7 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
         {status === "saved" && "Saved ✓"}
         {status === "error" && "Error — try again"}
       </button>
+      </div>
     </div>
   );
 }

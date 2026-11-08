@@ -62,7 +62,15 @@ export default function CatalogBar({ catalogs, selected, total, unsorted }: Prop
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {tab("all", "All", total)}
+        <Link
+          href="/saved"
+          style={{ zoom: 1.5 }}
+          className={`px-5 py-2 rounded-full text-xl font-medium border transition-colors ${
+            selected === "all" ? "bg-nebula-teal text-space-deep border-nebula-teal" : "bg-space-mid text-star-white border-space-light hover:border-nebula-teal"
+          }`}
+        >
+          All <span className="opacity-60">{total}</span>
+        </Link>
         {catalogs.map((c) => tab(c.id, c.name, c.count))}
         {unsorted > 0 && catalogs.length > 0 && tab("unsorted", "Unsorted", unsorted)}
         {adding ? (
@@ -81,6 +89,7 @@ export default function CatalogBar({ catalogs, selected, total, unsorted }: Prop
         ) : (
           <button
             onClick={() => setAdding(true)}
+            style={{ zoom: 1.5 }}
             className="px-5 py-2 rounded-full text-xl font-medium border border-dashed border-space-light text-star-white hover:border-nebula-teal"
           >
             + New catalog

@@ -2,21 +2,13 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
-      <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-nebula-teal to-nebula-purple bg-clip-text text-transparent">
-        Every reader needs a north star.
-      </h1>
-      <div className="mt-10 flex flex-wrap justify-center gap-6">
-        <Link
-          href="/quiz"
-          className="rounded-full bg-nebula-teal px-12 py-6 text-2xl font-semibold text-space-deep transition hover:opacity-90"
-        >
+    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center gap-6" style={{ zoom: 1.5 }}>
+      <h1 className="text-3xl font-bold text-star-white">Every reader needs a north star.</h1>
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link href="/quiz" className="px-5 py-2 text-sm bg-nebula-teal text-space-deep rounded font-medium hover:opacity-90 transition-opacity">
           Find your reading style
         </Link>
-        <Link
-          href="/saved"
-          className="rounded-full border-2 border-nebula-teal/50 text-star-white px-12 py-6 text-2xl font-medium transition hover:border-nebula-teal hover:bg-nebula-teal/5"
-        >
+        <Link href="/saved" className="px-5 py-2 text-sm border border-white/20 text-star-white rounded hover:bg-white/10 transition-colors">
           View saved responses
         </Link>
       </div>

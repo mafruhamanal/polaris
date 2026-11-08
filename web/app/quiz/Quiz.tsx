@@ -160,7 +160,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
         <p className="text-star-white text-3xl leading-relaxed">
           A short quiz that compares fonts, sizes, and spacing — no right or wrong answers, just what feels easier for <em>you</em>.
         </p>
-        <p className="text-xl text-star-white">About 2 minutes · 8 steps</p>
+        <p className="text-xl text-star-white" style={{ zoom: 2.25 }}>About 2 minutes · 8 steps</p>
         <button
           onClick={startQuiz}
           className="bg-nebula-teal text-space-deep px-20 py-6 rounded-full text-3xl font-semibold hover:opacity-90 transition-opacity shadow-sm"
@@ -174,7 +174,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
   if (phase.kind === "intake") {
     const q = INTAKE_QUESTIONS[0];
     return (
-      <div className="max-w-xl mx-auto space-y-6 py-6">
+      <div className="max-w-xl mx-auto space-y-6 py-6" style={{ zoom: 1.875 }}>
         <ProgressDots total={TOTAL_ROUNDS} current={0} />
         <p className="text-xs text-center text-star-white font-medium uppercase tracking-wide">About you</p>
         <h2 className="text-2xl font-bold text-center leading-snug">{q.prompt}</h2>
@@ -215,7 +215,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     const round = ROUNDS[roundIndex];
 
     return (
-      <div className="max-w-4xl mx-auto space-y-8 py-4">
+      <div className="max-w-4xl mx-auto space-y-8 py-4" style={{ zoom: 1.875 }}>
         <ProgressDots total={TOTAL_ROUNDS} current={roundIndex} />
         <p className="text-2xl text-center text-star-white font-semibold uppercase tracking-widest">
           Round {roundIndex + 1} of {TOTAL_ROUNDS}
@@ -233,7 +233,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "voice") {
     return (
-      <div className="max-w-2xl mx-auto space-y-8 py-6">
+      <div className="max-w-2xl mx-auto space-y-8 py-6" style={{ zoom: 1.875 }}>
         <ProgressDots total={TOTAL_ROUNDS} current={TOTAL_ROUNDS} />
         <p className="text-xl text-center text-star-white font-medium uppercase tracking-wide">Reading preferences</p>
         <h2 className="text-4xl font-bold text-center">Set up your reading experience</h2>
