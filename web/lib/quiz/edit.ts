@@ -6,7 +6,7 @@
 //   onChange → const { profile, settings } = editSetting(profile, field.id, optionId)
 //              settings is the saved format → PUT /api/settings
 
-import { BACKGROUNDS, type ReaderSettings, type ReadingProfile, type SavedSettings, sanitizeSettings, toSavedSettings, VOICES } from "../settings";
+import { BACKGROUNDS, type ReaderSettings, type ReadingProfile, type SavedSettings, sanitizeSettings, toSavedSettings } from "../settings";
 import { buildRounds, type RoundId, SPEED_CHOICES } from "./questions";
 import { EVIDENCE_KEY } from "./scoring";
 
@@ -65,11 +65,6 @@ export function editFields(): EditField[] {
   });
   return [
     ...rounds,
-    {
-      id: "voice",
-      label: FIELD_LABEL.voice,
-      options: VOICES.map((v) => ({ id: v.id ?? "default", label: v.label, patch: { ttsVoice: v.id } })),
-    },
     {
       id: "speed",
       label: FIELD_LABEL.speed,

@@ -62,15 +62,6 @@ export const BACKGROUNDS: Record<BackgroundId, { label: string; bg: string; text
   dark: { label: "Dark", bg: "#1E1E24", text: "#E8E6E3" },
 };
 
-// Voices that come with macOS. The website can't see which voices a Mac has, so this
-// is a short fixed list; an id the Mac doesn't have falls back to its default voice.
-// Verify on a Mac with: AVSpeechSynthesisVoice.speechVoices().map(\.identifier)
-export const VOICES: { id: string | null; label: string }[] = [
-  { id: null, label: "Mac default" },
-  { id: "com.apple.voice.compact.en-US.Samantha", label: "Samantha (US)" },
-  { id: "com.apple.voice.compact.en-GB.Daniel", label: "Daniel (UK)" },
-  { id: "com.apple.voice.compact.en-AU.Karen", label: "Karen (Australia)" },
-];
 
 export const LIMITS = {
   fontSizePx: { min: 14, max: 32 },

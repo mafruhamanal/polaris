@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   type SavedSettings, type BackgroundId,
-  BACKGROUNDS, VOICES, sanitizeSavedSettings, savedSettingsToStyle,
+  BACKGROUNDS, sanitizeSavedSettings, savedSettingsToStyle,
 } from "@/lib/settings";
 import { SAMPLE_TEXT } from "@/lib/quiz/questions";
+
+type ElevenLabsVoice = { voice_id: string; name: string; preview_url: string };
 
 const FONT_OPTIONS = [
   { id: "system", label: "System default" },
@@ -22,14 +24,24 @@ const LEVEL_OPTIONS = [
   { id: "advanced", label: "Advanced" },
 ];
 
-
 export default function SettingsForm({ settings: initial }: { settings: SavedSettings }) {
   const [s, setS] = useState<SavedSettings>(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
+
+  useEffect(() => {
+    fetch("/api/voices")
+      .then((r) => r.json())
+      .then((d) => setVoices(d.voices ?? []));
+  }, []);
 
   function set<K extends keyof SavedSettings>(key: K, value: SavedSettings[K]) {
     setS((prev) => ({ ...prev, [key]: value }));
     setStatus("idle");
+  }
+
+  function playVoice(previewUrl: string) {
+    new Audio(previewUrl).play();
   }
 
   async function save() {
@@ -109,12 +121,39 @@ export default function SettingsForm({ settings: initial }: { settings: SavedSet
         </div>
 
         {/* Voice */}
-        <div className="flex items-center gap-4 px-5 py-3">
-          <label className="w-36 text-sm font-medium text-gray-700 shrink-0">Voice</label>
-          <select value={s.voice ?? ""} onChange={(e) => set("voice", e.target.value || null)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm flex-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-            {VOICES.map((v) => <option key={v.id ?? "default"} value={v.id ?? ""}>{v.label}</option>)}
-          </select>
+        <div className="px-5 py-3 space-y-2">
+          <label className="block w-36 text-sm font-medium text-gray-700">Voice</label>
+          {voices.length === 0 ? (
+            <p className="text-sm text-gray-400">Loading voices…</p>
+          ) : (
+            <div className="space-y-2">
+              <div
+                onClick={() => set("voice", null)}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                  s.voice === null ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <span className="flex-1 text-sm font-medium">No voice (Mac default)</span>
+              </div>
+              {voices.map((v) => (
+                <div
+                  key={v.voice_id}
+                  onClick={() => set("voice", v.voice_id)}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    s.voice === v.voice_id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="flex-1 text-sm font-medium">{v.name}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); playVoice(v.preview_url); }}
+                    className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                  >
+                    ▶ Play
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Reading speed */}

@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  buildRounds, INTAKE_QUESTIONS, SAMPLE_TEXT, VOICE_SAMPLE, SPEED_CHOICES,
+  buildRounds, INTAKE_QUESTIONS, SAMPLE_TEXT, SPEED_CHOICES,
   type RoundOption, type RoundId,
 } from "@/lib/quiz/questions";
 import {
   startTournament, currentPair, pick, championWins,
   buildProfile, type QuizAnswers, type Tournament, type RoundPick,
 } from "@/lib/quiz/scoring";
-import { settingsToStyle, VOICES, type ReadingProfile, type SavedSettings } from "@/lib/settings";
+import { settingsToStyle, type ReadingProfile, type SavedSettings } from "@/lib/settings";
+
+type ElevenLabsVoice = { voice_id: string; name: string; preview_url: string };
 import ProgressDots from "@/components/quiz/ProgressDots";
 import QuestionCard from "@/components/quiz/QuestionCard";
 import ResultsCard from "@/components/quiz/ResultsCard";
@@ -36,6 +38,15 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [voice, setVoice] = useState<string | null>(null);
   const [speed, setSpeed] = useState<number>(1);
   const [applying, setApplying] = useState(false);
+  const [elevenlabsVoices, setElevenlabsVoices] = useState<ElevenLabsVoice[]>([]);
+
+  useEffect(() => {
+    if (phase.kind === "voice" && elevenlabsVoices.length === 0) {
+      fetch("/api/voices")
+        .then((r) => r.json())
+        .then((d) => setElevenlabsVoices(d.voices ?? []));
+    }
+  }, [phase.kind]);
 
   const answers: QuizAnswers = { intake: { hardest: intake }, picks, voice, speed };
   const soFar = buildProfile(answers).settings;
@@ -117,17 +128,8 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     router.push("/settings");
   }
 
-  function speakSample(voiceId: string | null, rate: number) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(VOICE_SAMPLE);
-    utterance.rate = rate;
-    if (voiceId) {
-      const voices = speechSynthesis.getVoices();
-      const v = voices.find((v) => v.voiceURI === voiceId || v.name === voiceId);
-      if (v) utterance.voice = v;
-    }
-    speechSynthesis.speak(utterance);
+  function playPreview(previewUrl: string) {
+    new Audio(previewUrl).play();
   }
 
   // ---- phases ----
@@ -218,23 +220,27 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
         <p className="text-xs text-center text-gray-400 font-medium uppercase tracking-wide">Reading voice</p>
         <h2 className="text-2xl font-bold text-center">Which voice sounds best?</h2>
         <div className="space-y-2">
-          {VOICES.map((v) => (
-            <div
-              key={v.id ?? "default"}
-              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                voice === v.id ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-              onClick={() => setVoice(v.id)}
-            >
-              <span className="flex-1 font-medium">{v.label}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); speakSample(v.id, speed); }}
-                className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+          {elevenlabsVoices.length === 0 ? (
+            <p className="text-center text-gray-400">Loading voices…</p>
+          ) : (
+            elevenlabsVoices.map((v) => (
+              <div
+                key={v.voice_id}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  voice === v.voice_id ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+                onClick={() => setVoice(v.voice_id)}
               >
-                ▶ Play
-              </button>
-            </div>
-          ))}
+                <span className="flex-1 font-medium">{v.name}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); playPreview(v.preview_url); }}
+                  className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                >
+                  ▶ Play
+                </button>
+              </div>
+            ))
+          )}
         </div>
         <button
           onClick={() => setPhase({ kind: "speed" })}
