@@ -16,23 +16,24 @@ export default async function ConnectPage() {
   const deepLink = `polaris://connected?token=${token}`;
 
   return (
-    <main className="p-8 max-w-lg space-y-4">
-      <h1 className="text-xl font-bold">Connect Mac app</h1>
-      <p className="text-sm text-gray-600">A device token has been generated. Copy it or use the deep link.</p>
-      <div>
-        <p className="text-xs text-gray-500 mb-1">Token</p>
-        <code className="block bg-gray-100 rounded p-3 text-xs break-all">{token}</code>
+    <main className="p-10 max-w-2xl space-y-8">
+      <h1 className="text-4xl font-bold text-star-white">Connect Mac app</h1>
+      <p className="text-2xl text-star-white">A device token has been generated. Copy it or use the deep link.</p>
+      <div className="space-y-2">
+        <p className="text-xl font-medium text-star-white uppercase tracking-wide">Token</p>
+        <code className="block bg-space-mid border border-space-light rounded-xl p-5 text-xl text-nebula-teal break-all">{token}</code>
       </div>
-      <div>
-        <p className="text-xs text-gray-500 mb-1">Deep link (opens Mac app)</p>
-        <a href={deepLink} className="inline-block rounded bg-black px-4 py-2 text-sm text-white">
+      <div className="space-y-3">
+        <p className="text-xl font-medium text-star-white uppercase tracking-wide">Deep link (opens Mac app)</p>
+        <a href={deepLink} className="inline-block rounded-xl bg-nebula-teal px-8 py-4 text-2xl font-semibold text-space-deep hover:opacity-90 transition-opacity">
           Open Polaris
         </a>
-        <code className="mt-2 block bg-gray-100 rounded p-3 text-xs break-all">{deepLink}</code>
+        <code className="block bg-space-mid border border-space-light rounded-xl p-5 text-xl text-nebula-teal break-all">{deepLink}</code>
       </div>
-      <p className="text-xs text-gray-400">
-        Test: <code className="bg-gray-100 px-1 rounded">curl -H "Authorization: Bearer {token}" http://localhost:3000/api/settings</code>
-      </p>
+      <div className="bg-space-mid border border-space-light rounded-xl p-5 space-y-2">
+        <p className="text-xl font-medium text-star-white">Test with curl:</p>
+        <code className="block text-lg text-nebula-teal break-all">curl -H "Authorization: Bearer {token}" http://localhost:3000/api/settings</code>
+      </div>
     </main>
   );
 }
