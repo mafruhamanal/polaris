@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
+import { SAVED_DEFAULTS, savedSettingsToStyle, type BackgroundId, type SavedSettings } from "@/lib/settings";
 import SavedItemCard from "@/components/saved/SavedItemCard";
 import Link from "next/link";
 
@@ -8,12 +9,37 @@ export default async function SavedPage() {
   const userId = await getUserId();
   if (!userId) redirect("/sign-in");
 
-  const rows = await db`
-    SELECT id, original_text, response, mode, source_app, source_url, created_at
-    FROM saved_responses
-    WHERE user_id = ${userId}
-    ORDER BY created_at DESC
-  `;
+  const [rows, settingsRows] = await Promise.all([
+    db`
+      SELECT id, original_text, response, mode, source_app, source_url, created_at
+      FROM saved_responses
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+    `,
+    db`
+      SELECT font_family, font_size, letter_spacing, line_spacing, background, voice, reading_speed, reading_level
+      FROM reader_settings WHERE user_id = ${userId} LIMIT 1
+    `,
+  ]);
+
+  const settings: SavedSettings = settingsRows.length > 0 ? {
+    fontFamily: settingsRows[0].font_family,
+    fontSize: settingsRows[0].font_size,
+    letterSpacing: settingsRows[0].letter_spacing,
+    lineSpacing: settingsRows[0].line_spacing,
+    background: settingsRows[0].background as BackgroundId,
+    voice: settingsRows[0].voice,
+    readingSpeed: settingsRows[0].reading_speed,
+    readingLevel: settingsRows[0].reading_level,
+  } : SAVED_DEFAULTS;
+
+  const textStyle = savedSettingsToStyle(settings);
+  const readingStyle = {
+    fontFamily: textStyle.fontFamily,
+    fontSize: textStyle.fontSize,
+    letterSpacing: textStyle.letterSpacing,
+    lineHeight: textStyle.lineHeight,
+  };
 
   return (
     <div className="space-y-6">
@@ -41,6 +67,7 @@ export default async function SavedPage() {
                 sourceApp={r.source_app ? String(r.source_app) : null}
                 sourceUrl={r.source_url ? String(r.source_url) : null}
                 createdAt={String(r.created_at)}
+                readingStyle={readingStyle}
               />
             </li>
           ))}

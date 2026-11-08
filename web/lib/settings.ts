@@ -1,3 +1,5 @@
+import type React from "react";
+
 // Shared ReaderSettings type and default settings used by the quiz, API, and Mac app.
 //
 // Two shapes live here:
@@ -199,6 +201,31 @@ export function toSavedSettings(s: ReaderSettings): SavedSettings {
     readingSpeed: s.ttsSpeed,
     readingLevel: SAVED_LEVEL[s.readingLevel],
     background: s.background,
+  };
+}
+
+const SAVED_FONT_MAP: Record<string, string> = {
+  system: "system-ui, sans-serif",
+  serif: "Georgia, serif",
+  monospace: "ui-monospace, monospace",
+  rounded: "ui-rounded, sans-serif",
+  "Atkinson Hyperlegible": "'Atkinson Hyperlegible', Verdana, sans-serif",
+  Lexend: "'Lexend', Verdana, sans-serif",
+  Verdana: "Verdana, sans-serif",
+  OpenDyslexic: "'OpenDyslexic', Verdana, sans-serif",
+  Arial: "Arial, sans-serif",
+};
+
+/** CSS for rendering text in the user's SavedSettings (saved page, layout body, settings preview). */
+export function savedSettingsToStyle(s: SavedSettings): React.CSSProperties {
+  const bg = BACKGROUNDS[s.background as BackgroundId] ?? BACKGROUNDS.white;
+  return {
+    fontFamily: SAVED_FONT_MAP[s.fontFamily] ?? s.fontFamily,
+    fontSize: `${s.fontSize}px`,
+    letterSpacing: `${s.letterSpacing}em`,
+    lineHeight: s.lineSpacing,
+    backgroundColor: bg.bg,
+    color: bg.text,
   };
 }
 
