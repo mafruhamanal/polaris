@@ -137,6 +137,20 @@ export class SpeechPlayer {
     this.setStatus(this.audio || this.index > 0 ? "paused" : "idle");
   }
 
+  /** Moves by `delta` words; keeps reading from there if it was reading. */
+  step(delta: number) {
+    if (this.words.length === 0) return;
+    this.index = clamp(this.index + delta, 0, this.words.length - 1);
+    if (this.audio && this.index < this.wordTimes.length) {
+      this.audio.currentTime = this.wordTimes[this.index];
+    } else if (this.utterance) {
+      this.speakInBrowser(this.index);
+      return;
+    }
+    // Paused or still loading: just show the word; playing starts from here.
+    this.cb.onWord(this.words[this.index]);
+  }
+
   stop() {
     this.job++;
     cancelAnimationFrame(this.raf);

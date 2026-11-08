@@ -13,6 +13,8 @@ type Value = {
   status: SpeechStatus;
   word: WordRange | null;
   toggle: () => void;
+  /** Previous (-1) or next (+1) word. */
+  step: (delta: number) => void;
   /** Reading has started (and isn't finished), so the card should show everything. */
   active: boolean;
 };
@@ -62,7 +64,11 @@ export function SpeechCard({ texts, voice, rate = 1, children }: {
     else void player.current.play();
   }
 
-  const value: Value = { texts, offsets, status, word, toggle, active: status !== "idle" };
+  function step(delta: number) {
+    player.current?.step(delta);
+  }
+
+  const value: Value = { texts, offsets, status, word, toggle, step, active: status !== "idle" };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
@@ -143,5 +149,52 @@ export function CardText({ index, clamp, lineClamp, boxed, as: Tag = "p", style,
     <Tag style={style} className={`${className ?? ""} ${active ? "" : lineClamp ?? ""}`}>
       {content}
     </Tag>
+  );
+}
+
+const iconProps = { width: 28, height: 28, viewBox: "0 0 24 24", fill: "currentColor", "aria-hidden": true } as const;
+
+/** Previous word, play/pause and next word, shown while the card is being read (like the Mac reader). */
+export function ReadingControls() {
+  const speech = useSpeechCard();
+  const loading = speech?.status === "loading";
+  const [almostReady, setAlmostReady] = useState(false);
+
+  // "Preparing voice…", then "Almost ready…" if it takes a while.
+  useEffect(() => {
+    setAlmostReady(false);
+    if (!loading) return;
+    const t = setTimeout(() => setAlmostReady(true), 3000);
+    return () => clearTimeout(t);
+  }, [loading]);
+
+  if (!speech?.active) return null;
+  const playing = speech.status === "playing";
+  const button = "p-2 rounded-full text-nebula-teal hover:bg-space-light transition-colors";
+
+  return (
+    <div className="sticky bottom-4 flex items-center justify-center gap-4 flex-wrap">
+      <div className="flex items-center gap-2 rounded-full border border-space-light bg-space-mid/95 px-4 py-1 shadow-lg backdrop-blur">
+        <button type="button" onClick={() => speech.step(-1)} className={button} aria-label="Previous word" title="Previous word">
+          <svg {...iconProps}><path d="M11 6v12l-8-6zM21 6v12l-8-6z" /></svg>
+        </button>
+        <button type="button" onClick={speech.toggle} className={button}
+                aria-label={playing || loading ? "Pause" : "Play"} title={loading ? "Cancel" : playing ? "Pause" : "Play"}>
+          {loading ? (
+            <svg {...iconProps} className="animate-spin" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+              <path d="M12 3a9 9 0 1 0 9 9" />
+            </svg>
+          ) : playing ? (
+            <svg {...iconProps}><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+          ) : (
+            <svg {...iconProps}><path d="M7 4v16l13-8z" /></svg>
+          )}
+        </button>
+        <button type="button" onClick={() => speech.step(1)} className={button} aria-label="Next word" title="Next word">
+          <svg {...iconProps}><path d="M13 6v12l8-6zM3 6v12l8-6z" /></svg>
+        </button>
+      </div>
+      {loading && <span className="text-xl text-star-white" role="status">{almostReady ? "Almost ready…" : "Preparing voice…"}</span>}
+    </div>
   );
 }

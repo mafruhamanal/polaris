@@ -1,7 +1,7 @@
 import type React from "react";
 import DeleteSavedButton from "./DeleteSavedButton";
 import ExpandableCard from "./ExpandableCard";
-import { SpeechCard, ReadAloudButton, CardText } from "./SpeechCard";
+import { SpeechCard, ReadAloudButton, ReadingControls, CardText } from "./SpeechCard";
 
 type Props = {
   id: string;
@@ -71,6 +71,7 @@ export default function SavedItemCard({ id, originalText, response, mode, source
             <div className="space-y-4">
               <Labeled label="You asked"><CardText index={first.question} className={body} /></Labeled>
               <Labeled label="Answer"><CardText index={first.answer} clamp={300} boxed style={readingStyle} className={body} /></Labeled>
+              <ReadingControls />
             </div>
           }
           full={
@@ -84,6 +85,7 @@ export default function SavedItemCard({ id, originalText, response, mode, source
                   <Labeled label="Answer"><CardText index={t.answer} boxed style={readingStyle} className={body} /></Labeled>
                 </div>
               ))}
+              <ReadingControls />
             </div>
           }
         />
@@ -109,6 +111,8 @@ export default function SavedItemCard({ id, originalText, response, mode, source
             <CardText index={at.response} clamp={limit} boxed style={readingStyle} />
           </Labeled>
         )}
+
+        <ReadingControls />
       </div>
     </SpeechCard>
   );
