@@ -17,6 +17,21 @@ export class GeminiError extends Error {
   }
 }
 
+/** Up to ~6 MB of base64: a downscaled screenshot from the Mac. */
+const MAX_IMAGE_CHARS = 8_000_000;
+
+/** The request's base64 JPEG screenshot if it looks valid, else null. */
+export function imageFrom(value: unknown): string | null {
+  return typeof value === "string" && value.length > 100 && value.length <= MAX_IMAGE_CHARS && /^[A-Za-z0-9+/=]+$/.test(value)
+    ? value
+    : null;
+}
+
+/** Told to Gemini when a screenshot comes with text recognized from it. */
+export const SCREENSHOT_NOTE =
+  "A SCREENSHOT is attached. The text above was recognized from it and may have small mistakes. " +
+  "Use the image for anything the text misses, like diagrams, charts, math, or layout.";
+
 /** A 502 response with a readable message for a failed Gemini call (timeouts included). */
 export function aiErrorResponse(e: unknown): Response {
   const message =
@@ -47,6 +62,8 @@ export type GeminiSchema = {
 interface CallOptions {
   system: string;
   prompt: string;
+  /** Base64 JPEG screenshot sent along with the prompt. */
+  image?: string | null;
   model?: string;
   temperature?: number;
   maxOutputTokens?: number;
@@ -56,7 +73,13 @@ interface CallOptions {
 function body(opts: CallOptions, extra: Record<string, unknown> = {}) {
   return JSON.stringify({
     systemInstruction: { parts: [{ text: opts.system }] },
-    contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+    contents: [{
+      role: "user",
+      parts: [
+        { text: opts.prompt },
+        ...(opts.image ? [{ inlineData: { mimeType: "image/jpeg", data: opts.image } }] : []),
+      ],
+    }],
     generationConfig: {
       temperature: opts.temperature ?? 0.4,
       maxOutputTokens: opts.maxOutputTokens ?? 2048,

@@ -1,16 +1,18 @@
 // POST /api/simplify — the Mac app's Simplify feature.
-// Body: { text, mode?, context? } → simplifies `text` at the user's reading level, saves it to
-// saved_responses, and returns { text, mode, settings, savedId }.
+// Body: { text, mode?, context?, image? } → simplifies `text` at the user's reading level, saves it to
+// saved_responses, and returns { text, mode, settings, savedId }. With `image` (a base64 JPEG
+// screenshot), `text` is the text recognized from it and may be empty.
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
 import { SAVED_DEFAULTS, type SavedSettings, type SavedReadingLevel } from "@/lib/settings";
-import { streamText, hasGeminiKey } from "@/lib/ai/gemini";
+import { streamText, hasGeminiKey, imageFrom, SCREENSHOT_NOTE } from "@/lib/ai/gemini";
 import { simplifySystem, simplifyPrompt } from "@/lib/ai/prompts";
 
 type SimplifyBody = {
   text: string;
   mode?: "simplify" | "explain";
   context?: { app?: string; title?: string; url?: string };
+  image?: string;
 };
 
 function geminiLevel(readingLevel: SavedReadingLevel): "simpler" | "simplest" {
@@ -28,11 +30,13 @@ export async function POST(req: Request) {
     return Response.json({ error: "Body must be JSON" }, { status: 400 });
   }
 
-  const { text, mode = "simplify", context } = body;
-  if (!text || typeof text !== "string" || !text.trim()) {
+  const { mode = "simplify", context } = body;
+  const image = imageFrom(body.image);
+  const text = typeof body.text === "string" ? body.text : "";
+  if (!text.trim() && !image) {
     return Response.json({ error: "text is required" }, { status: 400 });
   }
-  const trimmedText = text.slice(0, 20_000);
+  const trimmedText = text.trim() ? text.slice(0, 20_000) : "(screenshot)";
 
   // Load user's reading settings (fall back to defaults if none saved yet)
   const rows = await db`
@@ -60,7 +64,8 @@ export async function POST(req: Request) {
       const chunks: string[] = [];
       for await (const chunk of streamText({
         system: simplifySystem(level),
-        prompt: simplifyPrompt(trimmedText, context),
+        prompt: simplifyPrompt(trimmedText, context) + (image ? `\n\n${SCREENSHOT_NOTE}` : ""),
+        image,
         temperature: 0.3,
         maxOutputTokens: 2048,
       })) {
