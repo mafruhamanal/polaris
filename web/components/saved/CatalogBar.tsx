@@ -51,8 +51,8 @@ export default function CatalogBar({ catalogs, selected, total, unsorted }: Prop
     <Link
       key={id}
       href={id === "all" ? "/saved" : `/saved?catalog=${id}`}
-      className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-        selected === id ? "bg-ink text-white border-ink" : "bg-white text-ink-soft border-ink/15 hover:border-ink/40"
+      className={`px-5 py-2 rounded-full text-xl font-medium border transition-colors ${
+        selected === id ? "bg-nebula-teal text-space-deep border-nebula-teal" : "bg-space-mid text-star-white border-space-light hover:border-nebula-teal"
       }`}
     >
       {label} <span className="opacity-60">{count}</span>
@@ -73,26 +73,26 @@ export default function CatalogBar({ catalogs, selected, total, unsorted }: Prop
               onChange={(e) => setName(e.target.value)}
               placeholder="Catalog name"
               maxLength={60}
-              className="px-3 py-1.5 rounded-full text-sm border border-ink/30 outline-none focus:border-ink"
+              className="px-4 py-2 rounded-full text-xl bg-space-mid text-star-white border border-space-light outline-none focus:border-nebula-teal"
             />
-            <button type="submit" className="px-3 py-1.5 rounded-full text-sm font-medium bg-ember text-white">Add</button>
-            <button type="button" onClick={() => setAdding(false)} className="text-sm text-ink-soft">Cancel</button>
+            <button type="submit" className="px-5 py-2 rounded-full text-xl font-medium bg-nebula-teal text-space-deep">Add</button>
+            <button type="button" onClick={() => setAdding(false)} className="text-xl text-star-white">Cancel</button>
           </form>
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="px-4 py-1.5 rounded-full text-sm font-medium border border-dashed border-ink/30 text-ink-soft hover:border-ink"
+            className="px-5 py-2 rounded-full text-xl font-medium border border-dashed border-space-light text-star-white hover:border-nebula-teal"
           >
             + New catalog
           </button>
         )}
         {current && (
-          <button onClick={remove} className="ml-auto text-sm text-ink-soft hover:text-ember">
+          <button onClick={remove} className="ml-auto text-xl text-star-white hover:text-nebula-teal">
             Delete catalog
           </button>
         )}
       </div>
-      {error && <p className="text-sm text-ember">{error}</p>}
+      {error && <p className="text-xl text-nebula-gold">{error}</p>}
     </div>
   );
 }

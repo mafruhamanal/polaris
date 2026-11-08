@@ -16,38 +16,39 @@ type Props = {
 };
 
 const MODE_STYLE: Record<string, string> = {
-  simplify: "bg-green-100 text-green-800",
-  explain: "bg-blue-100 text-blue-800",
-  dictation: "bg-purple-100 text-purple-800",
-  note: "bg-amber-100 text-amber-800",
+  simplify:  "bg-nebula-teal/20 text-nebula-teal",
+  explain:   "bg-nebula-purple/20 text-nebula-purple",
+  dictation: "bg-nebula-gold/20 text-nebula-gold",
+  note:      "bg-nebula-gold/20 text-nebula-gold",
 };
 
 export default function SavedItemCard({ id, originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle, title, catalogId, catalogs = [] }: Props) {
-  const badge = MODE_STYLE[mode] ?? "bg-gray-100 text-gray-700";
+  const badge = MODE_STYLE[mode] ?? "bg-space-light text-star-white";
   const isNote = mode === "note";
+  const limit = isNote ? 1200 : 300;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-      <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${badge}`}>{mode}</span>
-        {sourceApp && <span className="text-gray-400">{sourceApp}</span>}
+    <div className="bg-space-mid rounded-2xl border border-space-light shadow-sm p-8 space-y-6">
+      <div className="flex items-center gap-4 text-3xl text-star-white flex-wrap">
+        <span className={`px-5 py-1.5 rounded-full text-2xl font-semibold ${badge}`}>{mode}</span>
+        {sourceApp && <span className="text-star-white">{sourceApp}</span>}
         {sourceUrl && (
-          <span className="text-gray-400 truncate max-w-xs">{sourceUrl}</span>
+          <span className="text-star-white truncate max-w-xs">{sourceUrl}</span>
         )}
-        <span className="ml-auto text-xs">{new Date(createdAt).toLocaleString()}</span>
+        <span className="ml-auto text-2xl text-star-white">{new Date(createdAt).toLocaleString()}</span>
         <MoveToCatalog itemId={id} catalogId={catalogId ?? null} catalogs={catalogs} />
       </div>
 
-      {title && <h2 style={readingStyle} className="font-bold text-lg">{title}</h2>}
+      {title && <h2 style={readingStyle} className="font-bold text-3xl text-star-white">{title}</h2>}
 
-      <div className="space-y-1">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{isNote ? "What you said" : "Original"}</p>
-        <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">{originalText}</p>
+      <div className="space-y-2">
+        <p className="text-base font-medium text-star-white uppercase tracking-wide">{isNote ? "What you said" : "Original"}</p>
+        <p className="text-2xl text-star-white leading-relaxed line-clamp-2">{originalText}</p>
       </div>
 
-      <div className="space-y-1">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{isNote ? "Note" : "Response"}</p>
-        <p style={readingStyle} className="leading-relaxed whitespace-pre-line">{response.slice(0, isNote ? 1200 : 300)}{response.length > (isNote ? 1200 : 300) ? "…" : ""}</p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-star-white uppercase tracking-wide">{isNote ? "Note" : "Response"}</p>
+        <p style={readingStyle} className="leading-relaxed whitespace-pre-line">{response.slice(0, limit)}{response.length > limit ? "…" : ""}</p>
       </div>
     </div>
   );

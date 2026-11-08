@@ -154,16 +154,16 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "intro") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 max-w-lg mx-auto">
-        <div className="text-6xl">🔭</div>
-        <h1 className="text-3xl font-bold leading-tight">Find your reading settings</h1>
-        <p className="text-gray-600 text-lg leading-relaxed">
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 max-w-4xl mx-auto">
+        <div className="text-9xl">🔭</div>
+        <h1 className="text-6xl font-bold leading-tight">Find your reading settings</h1>
+        <p className="text-star-white text-3xl leading-relaxed">
           A short quiz that compares fonts, sizes, and spacing — no right or wrong answers, just what feels easier for <em>you</em>.
         </p>
-        <p className="text-sm text-gray-400">About 2 minutes · 8 steps</p>
+        <p className="text-xl text-star-white">About 2 minutes · 8 steps</p>
         <button
           onClick={startQuiz}
-          className="bg-blue-600 text-white px-10 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+          className="bg-nebula-teal text-space-deep px-20 py-6 rounded-full text-3xl font-semibold hover:opacity-90 transition-opacity shadow-sm"
         >
           Start →
         </button>
@@ -176,7 +176,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     return (
       <div className="max-w-xl mx-auto space-y-6 py-6">
         <ProgressDots total={TOTAL_ROUNDS} current={0} />
-        <p className="text-xs text-center text-gray-400 font-medium uppercase tracking-wide">About you</p>
+        <p className="text-xs text-center text-star-white font-medium uppercase tracking-wide">About you</p>
         <h2 className="text-2xl font-bold text-center leading-snug">{q.prompt}</h2>
         <div className="space-y-3">
           {q.options.map((opt) => (
@@ -189,8 +189,8 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
               }
               className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all font-medium ${
                 intake.includes(opt.id)
-                  ? "border-blue-500 bg-blue-50 text-blue-800"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  ? "border-nebula-purple bg-nebula-purple/10 text-nebula-purple"
+                  : "border-space-light bg-space-mid text-star-white hover:border-nebula-purple/40"
               }`}
             >
               {opt.label}
@@ -199,7 +199,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
         <button
           onClick={submitIntake}
-          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+          className="w-full bg-nebula-teal text-space-deep py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
         >
           {intake.length === 0 ? "Skip →" : "Next →"}
         </button>
@@ -215,9 +215,9 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     const round = ROUNDS[roundIndex];
 
     return (
-      <div className="max-w-2xl mx-auto space-y-6 py-4">
+      <div className="max-w-4xl mx-auto space-y-8 py-4">
         <ProgressDots total={TOTAL_ROUNDS} current={roundIndex} />
-        <p className="text-xs text-center text-gray-400 font-medium uppercase tracking-wide">
+        <p className="text-2xl text-center text-star-white font-semibold uppercase tracking-widest">
           Round {roundIndex + 1} of {TOTAL_ROUNDS}
         </p>
         <QuestionCard
@@ -233,33 +233,33 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   if (phase.kind === "voice") {
     return (
-      <div className="max-w-lg mx-auto space-y-6 py-6">
+      <div className="max-w-2xl mx-auto space-y-8 py-6">
         <ProgressDots total={TOTAL_ROUNDS} current={TOTAL_ROUNDS} />
-        <p className="text-xs text-center text-gray-400 font-medium uppercase tracking-wide">Reading preferences</p>
-        <h2 className="text-2xl font-bold text-center">Set up your reading experience</h2>
+        <p className="text-xl text-center text-star-white font-medium uppercase tracking-wide">Reading preferences</p>
+        <h2 className="text-4xl font-bold text-center">Set up your reading experience</h2>
 
         {/* Voice */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
-          <div className="px-5 py-3">
-            <p className="text-sm font-medium text-gray-700 mb-2">Voice</p>
+        <div className="bg-space-mid rounded-2xl border border-nebula-teal/10 shadow-sm divide-y divide-space-light">
+          <div className="px-6 py-5">
+            <p className="text-xl font-medium text-star-white mb-4">Voice</p>
             {loadingVoices ? (
-              <p className="text-sm text-gray-400 py-1">Loading voices…</p>
+              <p className="text-xl text-star-white py-1">Loading voices…</p>
             ) : elevenlabsVoices.length === 0 ? (
-              <p className="text-sm text-gray-400 py-1">No voices available.</p>
+              <p className="text-xl text-star-white py-1">No voices available.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {elevenlabsVoices.map((v) => (
                   <div
                     key={v.voice_id}
-                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      voice === v.voice_id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      voice === v.voice_id ? "border-nebula-teal bg-nebula-teal/10" : "border-space-light hover:border-nebula-teal/40"
                     }`}
                     onClick={() => setVoice(v.voice_id)}
                   >
-                    <span className="flex-1 text-sm font-medium">{v.name}</span>
+                    <span className={`flex-1 text-xl font-medium ${voice === v.voice_id ? "text-nebula-teal" : "text-star-white"}`}>{v.name}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); playPreview(v.preview_url); }}
-                      className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                      className="text-xl text-nebula-teal hover:text-star-white px-5 py-2 rounded-lg bg-nebula-teal/10 hover:bg-nebula-teal/20 transition-colors"
                     >
                       ▶ Play
                     </button>
@@ -270,12 +270,12 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
           </div>
 
           {/* Speed */}
-          <div className="px-5 py-3">
-            <p className="text-sm font-medium text-gray-700 mb-3">Reading speed</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="px-6 py-5">
+            <p className="text-xl font-medium text-star-white mb-4">Reading speed</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xl text-star-white">
                 <span>0.5×</span>
-                <span className="text-lg font-bold text-blue-600">{speed === 1 ? "1× normal" : `${speed}×`}</span>
+                <span className="text-3xl font-bold text-nebula-teal">{speed === 1 ? "1× normal" : `${speed}×`}</span>
                 <span>2×</span>
               </div>
               <input
@@ -286,31 +286,31 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
                 value={speed}
                 onChange={(e) => setSpeed(Number(e.target.value))}
                 onPointerUp={elevenlabsVoices.length > 0 ? playSpeedSample : undefined}
-                className="w-full accent-blue-600"
+                className="w-full accent-nebula-teal"
               />
               {elevenlabsVoices.length > 0 && (
-                <p className="text-xs text-gray-400">Release to hear a sample at this speed</p>
+                <p className="text-lg text-star-white">Release to hear a sample at this speed</p>
               )}
             </div>
           </div>
 
           {/* Reading level */}
-          <div className="px-5 py-3 space-y-2">
-            <p className="text-sm font-medium text-gray-700">Reading level</p>
-            <div className="flex gap-2">
+          <div className="px-6 py-5 space-y-4">
+            <p className="text-xl font-medium text-star-white">Reading level</p>
+            <div className="flex gap-3">
               {(["simple", "standard", "advanced"] as const).map((l) => (
                 <button
                   key={l}
                   onClick={() => setReadingLevel(l)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium border-2 transition-all capitalize ${
-                    readingLevel === l ? "border-blue-500 bg-blue-50 text-blue-800" : "border-gray-200 hover:border-gray-300"
+                  className={`px-6 py-3 rounded-lg text-xl font-medium border-2 transition-all capitalize ${
+                    readingLevel === l ? "border-nebula-teal bg-nebula-teal/10 text-nebula-teal" : "border-space-light text-star-white hover:border-nebula-teal/40 hover:text-star-white"
                   }`}
                 >
                   {l.charAt(0).toUpperCase() + l.slice(1)}
                 </button>
               ))}
             </div>
-            <p className="text-sm text-gray-400">
+            <p className="text-xl text-star-white">
               {readingLevel === "simple" && "Text is rewritten with short sentences and everyday words — easiest to read"}
               {readingLevel === "standard" && "Text is lightly simplified with clearer sentences — balanced and readable"}
               {readingLevel === "advanced" && "Text is shown as-is, with no changes — closest to the original source"}
@@ -320,7 +320,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         <button
           onClick={() => submitAnswers(voice, speed)}
-          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+          className="w-full bg-nebula-teal text-space-deep py-5 rounded-xl text-2xl font-semibold hover:opacity-90 transition-opacity"
         >
           See my settings →
         </button>
@@ -332,7 +332,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
         <div className="text-5xl animate-bounce">⭐</div>
-        <p className="text-lg text-gray-600">Analysing your picks…</p>
+        <p className="text-lg text-star-white">Analysing your picks…</p>
       </div>
     );
   }
@@ -349,8 +349,8 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
           applying={applying}
         />
         {!isLoggedIn && (
-          <p className="text-center text-sm text-gray-400 mt-4">
-            You&apos;ll need to <a href="/sign-in" className="text-blue-600 underline">sign in</a> to save these settings.
+          <p className="text-center text-sm text-star-white mt-4">
+            You&apos;ll need to <a href="/sign-in" className="text-nebula-teal underline">sign in</a> to save these settings.
           </p>
         )}
       </div>

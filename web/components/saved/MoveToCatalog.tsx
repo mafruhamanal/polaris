@@ -35,7 +35,7 @@ export default function MoveToCatalog({ itemId, catalogId, catalogs }: Props) {
       disabled={saving}
       onChange={(e) => move(e.target.value)}
       aria-label="Catalog"
-      className="text-xs rounded-full border border-ink/15 bg-white px-2 py-0.5 text-ink-soft"
+      className="text-xl rounded-full border border-space-light bg-space-mid px-3 py-1 text-star-white"
     >
       <option value="">Unsorted</option>
       {catalogs.map((c) => (

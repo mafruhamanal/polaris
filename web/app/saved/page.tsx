@@ -55,8 +55,8 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Saved responses</h1>
-        <span className="text-sm text-gray-400">{rows.length} item{rows.length !== 1 ? "s" : ""}</span>
+        <h1 className="text-4xl font-bold">Saved responses</h1>
+        <span className="text-2xl text-star-white font-medium">{rows.length} item{rows.length !== 1 ? "s" : ""}</span>
       </div>
 
       {allRows.length > 0 && (
@@ -64,13 +64,13 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
       )}
 
       {allRows.length > 0 && rows.length === 0 ? (
-        <p className="text-center py-16 text-gray-500">Nothing in this catalog yet. Use the dropdown on any item to move it here.</p>
+        <p className="text-center py-16 text-xl text-star-white">Nothing in this catalog yet. Use the catalog menu on any item to move it here.</p>
       ) : rows.length === 0 ? (
         <div className="text-center py-20 space-y-3">
-          <div className="text-5xl">📭</div>
-          <p className="text-gray-500 text-lg">Nothing saved yet.</p>
-          <p className="text-sm text-gray-400">Use the Polaris Mac app to simplify text or write notes by talking — they&apos;ll appear here.</p>
-          <Link href="/quiz" className="inline-block mt-2 text-blue-600 font-medium hover:underline">Take the quiz →</Link>
+          <div className="text-9xl">📭</div>
+          <p className="text-star-white text-3xl">Nothing saved yet.</p>
+          <p className="text-xl text-star-white">Use the Polaris Mac app to simplify text or write notes by talking — they&apos;ll appear here.</p>
+          <Link href="/quiz" className="inline-block mt-2 text-nebula-teal text-xl font-medium hover:underline">Take the quiz →</Link>
         </div>
       ) : (
         <ul className="space-y-4">

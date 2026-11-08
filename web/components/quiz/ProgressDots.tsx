@@ -8,10 +8,10 @@ export default function ProgressDots({ total, current, className = "" }: Props) 
           key={i}
           className={`rounded-full transition-all duration-300 ${
             i < current
-              ? "w-2.5 h-2.5 bg-blue-600"
+              ? "w-2.5 h-2.5 bg-nebula-teal"
               : i === current
-              ? "w-3 h-3 bg-blue-400"
-              : "w-2.5 h-2.5 bg-gray-200"
+              ? "w-3 h-3 bg-nebula-purple"
+              : "w-2.5 h-2.5 bg-space-light"
           }`}
         />
       ))}
