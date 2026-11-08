@@ -36,3 +36,7 @@ mac/scripts/build-app.sh --open    # builds mac/build/Polaris.app with POLARIS_A
 Then ★ in the menu bar → Connect Account, sign in, and click **Open Polaris**. Turn on
 Polaris under System Settings → Privacy & Security → Accessibility (again after rebuilding,
 since the free local signature changes each build).
+
+Write (the 🎙 circle, or ★ → Write a Note…) asks for the microphone and speech recognition the
+first time; it only works in the built app, not `swift run`. Read aloud uses your ElevenLabs
+voice from the quiz when the web app has `ELEVENLABS_API_KEY`, and the Mac's voices otherwise.

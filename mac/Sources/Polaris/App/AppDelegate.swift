@@ -8,6 +8,8 @@ import ApplicationServices
     private var currentTask: Task<Void, Never>?
     private var selection: String?
     private var context: SelectionContext?
+    /// The app the user was in when they circled (saved with Write notes).
+    private var sourceApp: String?
     private var monitors: [Any] = []
     private var statusItem: NSStatusItem?
 
@@ -78,6 +80,7 @@ import ApplicationServices
         // Pick up settings saved on the web (quiz, settings page) since we last checked.
         Task { await SettingsStore.shared.refresh(ifOlderThan: 10) }
 
+        sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName
         currentTask = Task { [weak self] in
             guard let self else { return }
             guard AXIsProcessTrusted() else {
@@ -88,7 +91,10 @@ import ApplicationServices
             }
             guard var selection = await SelectionReader.read(),
                   !selection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                self.popup.showText("No selection found. Highlight some text first, then circle.", near: location)
+                // Nothing selected: Write still works (Read and Ask are dimmed).
+                self.selection = nil
+                self.context = nil
+                self.popup.showMenu(near: location, hasSelection: false)
                 return
             }
             if selection.count > Config.maxSelectionChars {
@@ -97,18 +103,19 @@ import ApplicationServices
             self.selection = selection
             // Read the surrounding text now, while the other app still has focus.
             self.context = ContextReader.read(selection: selection)
-            self.popup.showMenu(near: location)
+            self.popup.showMenu(near: location, hasSelection: true)
         }
     }
 
     private func run(_ action: PopupAction) {
-        guard let selection else { return }
         currentTask?.cancel()
         switch action {
         case .read:
-            popup.showReader(selection)
+            if let selection { popup.showReader(selection) }
         case .ask:
-            popup.showAsk(context: context)
+            if selection != nil { popup.showAsk(context: context) }
+        case .write:
+            popup.showWrite(context: context, sourceApp: sourceApp)
         }
     }
 
@@ -189,6 +196,8 @@ import ApplicationServices
         let status = NSMenuItem(title: connected ? "Connected to your account" : "Not connected", action: nil, keyEquivalent: "")
         status.isEnabled = false
         menu.addItem(status)
+        menu.addItem(item("Write a Note…", #selector(writeNote)))
+        menu.addItem(.separator())
         if connected {
             menu.addItem(item("Refresh Reading Settings", #selector(refreshSettings)))
             menu.addItem(item("Disconnect", #selector(disconnect)))
@@ -207,6 +216,14 @@ import ApplicationServices
     }
 
     @objc private func connect() { AccountLink.openConnectPage() }
+
+    /// Write without circling: opens near the menu bar, not about any selection.
+    @objc private func writeNote() {
+        currentTask?.cancel()
+        selection = nil
+        context = nil
+        popup.showWrite(context: nil, sourceApp: nil, near: NSEvent.mouseLocation)
+    }
 
     /// For `swift run`, where polaris:// links can't reach the app: paste the token from /connect.
     @objc private func pasteToken() {

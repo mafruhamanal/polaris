@@ -88,6 +88,12 @@ struct ReaderSettings: Codable, Equatable {
         }
     }
 
+    /// Height of one line of text in the reading font.
+    var lineHeight: CGFloat {
+        let f = font
+        return ceil(f.ascender - f.descender + f.leading)
+    }
+
     private var colors: (bg: String, text: String) { Self.backgrounds[background] ?? Self.backgrounds["white"]! }
     var backgroundColor: NSColor { NSColor(hex: colors.bg) ?? .white }
     var textColor: NSColor { NSColor(hex: colors.text) ?? .black }

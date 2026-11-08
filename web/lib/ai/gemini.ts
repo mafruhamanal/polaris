@@ -17,6 +17,15 @@ export class GeminiError extends Error {
   }
 }
 
+/** A 502 response with a readable message for a failed Gemini call (timeouts included). */
+export function aiErrorResponse(e: unknown): Response {
+  const message =
+    e instanceof GeminiError ? e.message
+    : e instanceof Error && e.name === "TimeoutError" ? "Gemini took too long to answer. Please try again."
+    : "Something went wrong";
+  return Response.json({ error: message }, { status: 502 });
+}
+
 export function hasGeminiKey(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
 }

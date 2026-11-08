@@ -238,56 +238,21 @@ final class AskPanel: NSView {
     private func setSuggestions(_ list: [String], simplify: Bool = true) {
         if !list.isEmpty { suggestions = list }
         chips.subviews.forEach { $0.removeFromSuperview() }
-        let color = settings.textColor
-        if simplify { chips.addSubview(simplifyChip()) }
-        for title in list {
-            let chip = FirstClickButton(title: title, target: self, action: #selector(chipTapped(_:)))
-            chip.isBordered = false
-            chip.cell?.wraps = true
-            chip.cell?.lineBreakMode = .byWordWrapping
-            let styled = NSMutableAttributedString(attributedString: settings.styled(title))
-            let whole = NSRange(location: 0, length: styled.length)
-            styled.removeAttribute(.paragraphStyle, range: whole)
-            styled.addAttribute(.foregroundColor, value: color, range: whole)
-            chip.attributedTitle = styled
-            chip.wantsLayer = true
-            chip.layer?.cornerRadius = chipHeight / 2
-            chip.layer?.borderWidth = 1
-            chip.layer?.borderColor = color.withAlphaComponent(0.25).cgColor
-            chip.layer?.backgroundColor = color.withAlphaComponent(0.06).cgColor
+        if simplify {
+            let chip = Chip.make("Simplify", symbol: "wand.and.stars", filled: true, settings: settings,
+                                 target: self, action: #selector(simplifyTapped))
+            chip.toolTip = "Rewrite the selection at your reading level"
             chips.addSubview(chip)
+        }
+        for title in list {
+            chips.addSubview(Chip.make(title, settings: settings, target: self, action: #selector(chipTapped(_:))))
         }
         needsLayout = true
         layoutSubtreeIfNeeded()
     }
 
-    /// Filled with the accent color and a wand icon so it stands out from the questions.
-    private func simplifyChip() -> NSButton {
-        let chip = FirstClickButton(title: "", target: self, action: #selector(simplifyTapped))
-        chip.isBordered = false
-        chip.image = NSImage(systemSymbolName: "wand.and.stars", accessibilityDescription: nil)?
-            .withSymbolConfiguration(.init(pointSize: CGFloat(settings.fontSize) * 0.8, weight: .semibold))
-        chip.imagePosition = .imageLeading
-        chip.imageHugsTitle = true
-        chip.contentTintColor = .white
-        let styled = NSMutableAttributedString(attributedString: settings.styled(" Simplify"))
-        let whole = NSRange(location: 0, length: styled.length)
-        styled.removeAttribute(.paragraphStyle, range: whole)
-        styled.addAttribute(.foregroundColor, value: NSColor.white, range: whole)
-        chip.attributedTitle = styled
-        chip.toolTip = "Rewrite the selection at your reading level"
-        chip.wantsLayer = true
-        chip.layer?.cornerRadius = chipHeight / 2
-        chip.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
-        return chip
-    }
-
-    private var lineHeight: CGFloat {
-        let f = settings.font
-        return ceil(f.ascender - f.descender + f.leading)
-    }
-    private var chipHeight: CGFloat { lineHeight + 10 }
-    private var fieldHeight: CGFloat { max(28, lineHeight + 10) }
+    private var chipHeight: CGFloat { Chip.height(settings) }
+    private var fieldHeight: CGFloat { max(28, settings.lineHeight + 10) }
 
     private func setSpeaking(_ playing: Bool) {
         let name = playing ? "pause.fill" : "speaker.wave.2.fill"
@@ -344,7 +309,7 @@ final class AskPanel: NSView {
         var frames: [NSRect] = []
         for chip in chips.subviews {
             // Long chips take the full width and wrap onto more lines instead of being cut off.
-            var size = NSSize(width: chip.fittingSize.width + 20, height: h)
+            var size = NSSize(width: Chip.width(chip as! NSButton), height: h)
             if size.width > maxWidth, let title = (chip as? NSButton)?.attributedTitle {
                 let text = title.boundingRect(with: NSSize(width: maxWidth - 20, height: .greatestFiniteMagnitude),
                                               options: [.usesLineFragmentOrigin, .usesFontLeading])

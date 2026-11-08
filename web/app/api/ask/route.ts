@@ -1,7 +1,7 @@
 // POST /api/ask — answer a question about the user's selected text (called by the Mac app).
 // Body: { question, selection, before?, after?, pageTitle?, history? } → AskResult (see lib/ai/ask.ts).
 import { ask } from "@/lib/ai/ask";
-import { GeminiError } from "@/lib/ai/gemini";
+import { aiErrorResponse } from "@/lib/ai/gemini";
 import { getUserId } from "@/lib/getUserId";
 
 export async function POST(req: Request) {
@@ -17,10 +17,6 @@ export async function POST(req: Request) {
   try {
     return Response.json(await ask(body));
   } catch (e) {
-    const message =
-      e instanceof GeminiError ? e.message
-      : e instanceof Error && e.name === "TimeoutError" ? "Gemini took too long to answer. Please try again."
-      : "Something went wrong";
-    return Response.json({ error: message }, { status: 502 });
+    return aiErrorResponse(e);
   }
 }

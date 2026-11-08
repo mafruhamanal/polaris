@@ -1,4 +1,4 @@
-// Floating popup near the cursor: a menu of features first, then the reader, Ask, or the AI response.
+// Floating popup near the cursor: a menu of features first, then the reader, Ask, or Write.
 import AppKit
 
 final class FloatingPanel: NSPanel {
@@ -6,7 +6,7 @@ final class FloatingPanel: NSPanel {
 }
 
 enum PopupAction {
-    case read, ask
+    case read, ask, write
 }
 
 @MainActor
@@ -16,6 +16,7 @@ final class Popup {
     private let menuButtons: [(String, String, PopupAction)] = [
         ("Read aloud", "speaker.wave.2.fill", .read),
         ("Ask or simplify", "questionmark.bubble", .ask),
+        ("Write by talking", "mic.fill", .write),
     ]
     private var menuSize: NSSize {
         let n = CGFloat(menuButtons.count)
@@ -38,6 +39,8 @@ final class Popup {
     private let controls = ReaderControls(frame: .zero)
     private let backButton = FirstClickButton()
     let ask = AskPanel(frame: .zero)
+    let write = WritePanel(frame: .zero)
+    private var circles: [(PopupAction, CircleButton)] = []
     private let reader = SpeechReader()
     private let highlighter: WordHighlighter
     private var anchor = NSPoint.zero
@@ -108,6 +111,7 @@ final class Popup {
         container.addSubview(scroll)
         container.addSubview(controls)
         container.addSubview(ask)
+        container.addSubview(write)
         container.addSubview(backButton)
         panel.contentView = container
 
@@ -121,6 +125,7 @@ final class Popup {
             }
             button.setFrameOrigin(NSPoint(x: CGFloat(i) * (circleSize + circleSpacing), y: 0))
             menu.addSubview(button)
+            circles.append((action, button))
         }
 
         reader.onWord = { [weak self] range in self?.highlighter.highlight(range) }
@@ -132,9 +137,12 @@ final class Popup {
 
     // MARK: - Modes
 
-    /// The first view after circling: one button per feature.
-    func showMenu(near p: NSPoint) {
+    /// The first view after circling: one button per feature. Without a selection only Write works.
+    func showMenu(near p: NSPoint, hasSelection: Bool? = nil) {
         anchor = p
+        if let hasSelection {
+            for (action, circle) in circles { circle.isEnabled = hasSelection || action == .write }
+        }
         stopReading()
         canGoBack = false
         menu.isHidden = false
@@ -144,6 +152,8 @@ final class Popup {
         backButton.isHidden = true
         ask.isHidden = true
         ask.stop()
+        write.isHidden = true
+        write.stop()
         place(menuSize, hugCursor: true)
         panel.orderFrontRegardless()
     }
@@ -162,8 +172,26 @@ final class Popup {
         panel.makeFirstResponder(ask.field)
     }
 
-    /// True while the user is typing in a text box (so Space, arrows and Delete type normally).
-    var isTyping: Bool { (panel.firstResponder as? NSTextView)?.isFieldEditor == true }
+    /// Write: talk, then turn it into a note. Nothing is focused, so Space toggles the mic.
+    func showWrite(context: SelectionContext?, sourceApp: String?, near p: NSPoint? = nil) {
+        if let p { anchor = p }
+        stopReading()
+        let size = askSize
+        layoutContent(back: true, readerControls: false, size: size)
+        scroll.isHidden = true
+        write.isHidden = false
+        write.frame = NSRect(origin: .zero, size: panel.frame.size)
+        write.reset(context: context, sourceApp: sourceApp)
+        panel.orderFrontRegardless()
+        panel.makeKey()
+        panel.makeFirstResponder(nil)
+    }
+
+    /// True while the user is typing in a text box or editing a note (so Space, arrows and Delete type normally).
+    var isTyping: Bool {
+        guard let tv = panel.firstResponder as? NSTextView else { return false }
+        return tv.isFieldEditor || tv.isEditable
+    }
 
     /// Returns to the menu circles where they were.
     func backToMenu() { showMenu(near: anchor) }
@@ -193,13 +221,18 @@ final class Popup {
     func hide() {
         stopReading()
         ask.stop()
+        write.stop()
         panel.orderOut(nil)
     }
 
     // MARK: - Reader
 
-    func togglePlay() { if isReading { reader.togglePlay(text) } }
-    func step(_ delta: Int) { if isReading { reader.step(delta, text) } }
+    func togglePlay() {
+        if isReading { reader.togglePlay(text) } else if !write.isHidden { write.spaceKey() }
+    }
+    func step(_ delta: Int) {
+        if isReading { reader.step(delta, text) } else if !write.isHidden { write.step(delta) }
+    }
 
     private func stopReading() {
         isReading = false
@@ -226,6 +259,8 @@ final class Popup {
         scroll.isHidden = false
         ask.isHidden = true
         ask.stop()
+        write.isHidden = true
+        write.stop()
         controls.isHidden = !readerControls
         backButton.isHidden = !back
         // Back sits in a bar at the top; the reader's play controls in one at the bottom.
@@ -237,6 +272,7 @@ final class Popup {
         let color = SettingsStore.shared.settings.textColor
         background.appearance = SettingsStore.shared.settings.appearance
         ask.appearance = SettingsStore.shared.settings.appearance
+        write.appearance = SettingsStore.shared.settings.appearance
         backButton.contentTintColor = color
     }
 
@@ -272,9 +308,13 @@ final class Popup {
 @MainActor
 private final class CircleButton: NSView {
     private let handler: () -> Void
+    private let title: String
+    private let button: FirstClickButton
 
     init(title: String, symbol: String, diameter: CGFloat, handler: @escaping () -> Void) {
         self.handler = handler
+        self.title = title
+        button = FirstClickButton(frame: NSRect(x: 0, y: 0, width: diameter, height: diameter))
         super.init(frame: NSRect(x: 0, y: 0, width: diameter, height: diameter))
         toolTip = title
 
@@ -287,7 +327,6 @@ private final class CircleButton: NSView {
         circle.layer?.masksToBounds = true
         addSubview(circle)
 
-        let button = FirstClickButton(frame: bounds)
         button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)?
             .withSymbolConfiguration(.init(pointSize: 20, weight: .regular))
         button.imagePosition = .imageOnly
@@ -302,6 +341,15 @@ private final class CircleButton: NSView {
     required init?(coder: NSCoder) { fatalError() }
 
     @objc private func tapped() { handler() }
+
+    /// Dimmed and unclickable when off (Read and Ask need selected text).
+    var isEnabled = true {
+        didSet {
+            button.isEnabled = isEnabled
+            alphaValue = isEnabled ? 1 : 0.35
+            toolTip = isEnabled ? title : "\(title) (select some text first)"
+        }
+    }
 }
 
 /// Responds to the first click even when the popup isn't the key window.

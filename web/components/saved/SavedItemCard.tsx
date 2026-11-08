@@ -1,4 +1,5 @@
 import type React from "react";
+import MoveToCatalog from "./MoveToCatalog";
 
 type Props = {
   id: string;
@@ -9,16 +10,22 @@ type Props = {
   sourceUrl?: string | null;
   createdAt: string;
   readingStyle?: React.CSSProperties;
+  title?: string | null;
+  catalogId?: string | null;
+  catalogs?: { id: string; name: string }[];
 };
 
 const MODE_STYLE: Record<string, string> = {
   simplify:  "bg-nebula-teal/20 text-nebula-teal",
   explain:   "bg-nebula-purple/20 text-nebula-purple",
   dictation: "bg-nebula-gold/20 text-nebula-gold",
+  note:      "bg-nebula-gold/20 text-nebula-gold",
 };
 
-export default function SavedItemCard({ originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle }: Props) {
+export default function SavedItemCard({ id, originalText, response, mode, sourceApp, sourceUrl, createdAt, readingStyle, title, catalogId, catalogs = [] }: Props) {
   const badge = MODE_STYLE[mode] ?? "bg-space-light text-star-white";
+  const isNote = mode === "note";
+  const limit = isNote ? 1200 : 300;
 
   return (
     <div className="bg-space-mid rounded-2xl border border-space-light shadow-sm p-8 space-y-6">
@@ -29,16 +36,19 @@ export default function SavedItemCard({ originalText, response, mode, sourceApp,
           <span className="text-star-white truncate max-w-xs">{sourceUrl}</span>
         )}
         <span className="ml-auto text-2xl text-star-white">{new Date(createdAt).toLocaleString()}</span>
+        <MoveToCatalog itemId={id} catalogId={catalogId ?? null} catalogs={catalogs} />
       </div>
 
+      {title && <h2 style={readingStyle} className="font-bold text-3xl text-star-white">{title}</h2>}
+
       <div className="space-y-2">
-        <p className="text-base font-medium text-star-white uppercase tracking-wide">Original</p>
+        <p className="text-base font-medium text-star-white uppercase tracking-wide">{isNote ? "What you said" : "Original"}</p>
         <p className="text-2xl text-star-white leading-relaxed line-clamp-2">{originalText}</p>
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-star-white uppercase tracking-wide">Response</p>
-        <p style={readingStyle} className="leading-relaxed">{response.slice(0, 300)}{response.length > 300 ? "…" : ""}</p>
+        <p className="text-sm font-medium text-star-white uppercase tracking-wide">{isNote ? "Note" : "Response"}</p>
+        <p style={readingStyle} className="leading-relaxed whitespace-pre-line">{response.slice(0, limit)}{response.length > limit ? "…" : ""}</p>
       </div>
     </div>
   );
