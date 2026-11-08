@@ -215,9 +215,9 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
     const round = ROUNDS[roundIndex];
 
     return (
-      <div className="max-w-2xl mx-auto space-y-6 py-4">
+      <div className="max-w-4xl mx-auto space-y-8 py-4">
         <ProgressDots total={TOTAL_ROUNDS} current={roundIndex} />
-        <p className="text-xs text-center text-star-dim font-medium uppercase tracking-wide">
+        <p className="text-sm text-center text-star-dim font-medium uppercase tracking-wide">
           Round {roundIndex + 1} of {TOTAL_ROUNDS}
         </p>
         <QuestionCard
