@@ -4,7 +4,7 @@ import { Logo } from "@/components/Logo";
 export default function SignInPage() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="bg-space-mid border border-white/10 rounded-xl p-8 flex flex-col items-center gap-5 w-full max-w-sm" style={{ zoom: 1.5 }}>
+      <div className="bg-space-mid border border-star-white/10 rounded-xl p-8 flex flex-col items-center gap-5 w-full max-w-sm" style={{ zoom: 1.5 }}>
         <Logo className="text-2xl" />
         <div className="text-center">
           <h1 className="text-base font-semibold text-star-white">Sign in to Polaris</h1>

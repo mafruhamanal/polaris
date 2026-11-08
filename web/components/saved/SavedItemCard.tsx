@@ -23,7 +23,7 @@ type Props = {
 const MODE_STYLE: Record<string, string> = {
   simplify:  "bg-nebula-teal/20 text-nebula-teal",
   explain:   "bg-nebula-purple/20 text-nebula-purple",
-  ask:       "bg-nebula-purple/20 text-nebula-purple",
+  ask:       "bg-nebula-teal/20 text-nebula-teal", // same as simplify
   dictation: "bg-nebula-gold/20 text-nebula-gold",
   note:      "bg-nebula-gold/20 text-nebula-gold",
 };

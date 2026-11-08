@@ -36,8 +36,8 @@ export default function UserMenu({ name, email, signOutForm }: Props) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-14 w-72 bg-space-mid border border-white/10 rounded-xl shadow-lg overflow-hidden z-[200]">
-          <div className="px-5 py-4 border-b border-white/10">
+        <div className="absolute right-0 top-14 w-72 bg-space-mid border border-star-white/10 rounded-xl shadow-lg overflow-hidden z-[200]">
+          <div className="px-5 py-4 border-b border-star-white/10">
             <p className="text-base font-semibold text-star-white truncate">{name}</p>
             <p className="text-sm text-star-dim truncate">{email}</p>
           </div>

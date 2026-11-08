@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
-import { SAVED_DEFAULTS, type SavedSettings } from "@/lib/settings";
+import { SAVED_DEFAULTS, resolveFont, type SavedSettings } from "@/lib/settings";
 import SettingsForm from "./SettingsForm";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ export default async function SettingsPage() {
 
   const hasSettings = rows.length > 0;
   const settings: SavedSettings = !hasSettings ? SAVED_DEFAULTS : {
-    fontFamily: rows[0].font_family,
+    fontFamily: resolveFont(rows[0].font_family),
     fontSize: rows[0].font_size,
     letterSpacing: rows[0].letter_spacing,
     wordSpacing: rows[0].word_spacing,

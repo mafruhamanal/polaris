@@ -11,8 +11,7 @@ export type FontFamily =
   | "Atkinson Hyperlegible"
   | "Lexend"
   | "Verdana"
-  | "OpenDyslexic"
-  | "Arial";
+  | "OpenDyslexic";
 
 export type ReadingLevel = "original" | "simpler" | "simplest";
 
@@ -51,8 +50,20 @@ export const FONTS: { id: FontFamily; cssFamily: string; note: string }[] = [
   { id: "Lexend", cssFamily: "'Lexend', Verdana, sans-serif", note: "Wide letters built for easier reading" },
   { id: "Verdana", cssFamily: "Verdana, sans-serif", note: "Classic wide sans serif" },
   { id: "OpenDyslexic", cssFamily: "'OpenDyslexic', Verdana, sans-serif", note: "Heavy-bottomed letters; works for some people" },
-  { id: "Arial", cssFamily: "Arial, sans-serif", note: "Common default" },
 ];
+
+/** The font used when nothing valid is saved. */
+export const DEFAULT_FONT: FontFamily = "Atkinson Hyperlegible";
+
+/** `id` if it is one of the fonts above, otherwise the default (old saved values like "serif" or "Arial" land here). */
+export function resolveFont(id: unknown): FontFamily {
+  return FONTS.find((f) => f.id === id)?.id ?? DEFAULT_FONT;
+}
+
+/** The CSS font-family for a saved font name. */
+function fontCss(id: unknown): string {
+  return FONTS.find((f) => f.id === resolveFont(id))!.cssFamily;
+}
 
 export type BackgroundId = "white" | "cream" | "dark";
 
@@ -62,6 +73,37 @@ export const BACKGROUNDS: Record<BackgroundId, { label: string; bg: string; text
   dark: { label: "Dark", bg: "#1E1E24", text: "#E8E6E3" },
 };
 
+
+/**
+ * The site's colors for each saved background. The page background and text are the same hex values the
+ * Mac popup uses (BACKGROUNDS above); the card and border shades are tints of them. "dark" keeps the dark
+ * accent colors, white and cream use the light ones (see :root and [data-theme="light"] in globals.css).
+ */
+export const PAGE_PALETTES: Record<BackgroundId, { theme: "light" | "dark"; vars: Record<string, string> }> = {
+  white: {
+    theme: "light",
+    vars: { "--space-deep": "#FFFFFF", "--space-mid": "#F5F5F7", "--space-light": "#E6E6EB", "--star-white": "#1A1A1A", "--star-dim": "#5B5B66" },
+  },
+  cream: {
+    theme: "light",
+    vars: { "--space-deep": "#FBF5E6", "--space-mid": "#F3E9CF", "--space-light": "#E8DBBA", "--star-white": "#1A1A1A", "--star-dim": "#5E5846" },
+  },
+  dark: {
+    theme: "dark",
+    vars: { "--space-deep": "#1E1E24", "--space-mid": "#27272F", "--space-light": "#33333D", "--star-white": "#E8E6E3", "--star-dim": "#A5A29C" },
+  },
+};
+
+export function pagePalette(background: string) {
+  return PAGE_PALETTES[background as BackgroundId] ?? PAGE_PALETTES.white;
+}
+
+/** Re-colors the page right now (browser only), so a saved background shows without a reload. */
+export function applyPageTheme(background: string) {
+  const { theme, vars } = pagePalette(background);
+  document.documentElement.setAttribute("data-theme", theme);
+  for (const [name, value] of Object.entries(vars)) document.documentElement.style.setProperty(name, value);
+}
 
 export const LIMITS = {
   fontSizePx: { min: 10, max: 36 },
@@ -141,8 +183,8 @@ export function settingsToStyle(s: ReaderSettings): Record<string, string | numb
 export type SavedReadingLevel = "simple" | "standard" | "advanced";
 
 export interface SavedSettings {
-  /** "system" | "serif" | "rounded" | "monospace", or the exact name of a font installed on the Mac */
-  fontFamily: string;
+  /** One of the FONTS ids (the same fonts the quiz offers) */
+  fontFamily: FontFamily;
   /** Points, about 14–28 */
   fontSize: number;
   /** Fraction of the font size: 0 = normal, 0.05 = 5% extra, 0.1 = wide */
@@ -163,7 +205,7 @@ export interface SavedSettings {
 
 /** The Mac app's own defaults. */
 export const SAVED_DEFAULTS: SavedSettings = {
-  fontFamily: "system",
+  fontFamily: DEFAULT_FONT,
   fontSize: 16,
   letterSpacing: 0,
   wordSpacing: 0,
@@ -195,22 +237,10 @@ export function toSavedSettings(s: ReaderSettings): SavedSettings {
   };
 }
 
-const SAVED_FONT_MAP: Record<string, string> = {
-  system: "system-ui, sans-serif",
-  serif: "Georgia, serif",
-  monospace: "ui-monospace, monospace",
-  rounded: "ui-rounded, sans-serif",
-  "Atkinson Hyperlegible": "'Atkinson Hyperlegible', Verdana, sans-serif",
-  Lexend: "'Lexend', Verdana, sans-serif",
-  Verdana: "Verdana, sans-serif",
-  OpenDyslexic: "'OpenDyslexic', Verdana, sans-serif",
-  Arial: "Arial, sans-serif",
-};
-
 /** CSS typography properties only (no background/color) — suitable for applying globally to <body>. */
 export function savedSettingsToTypographyStyle(s: SavedSettings): { fontFamily: string; letterSpacing: string; wordSpacing: string; lineHeight: number; } {
   return {
-    fontFamily: SAVED_FONT_MAP[s.fontFamily] ?? s.fontFamily,
+    fontFamily: fontCss(s.fontFamily),
     letterSpacing: `${s.letterSpacing}em`,
     wordSpacing: `${s.wordSpacing}em`,
     lineHeight: s.lineSpacing,
@@ -221,7 +251,7 @@ export function savedSettingsToTypographyStyle(s: SavedSettings): { fontFamily: 
 export function savedSettingsToStyle(s: SavedSettings): React.CSSProperties {
   const bg = BACKGROUNDS[s.background as BackgroundId] ?? BACKGROUNDS.white;
   return {
-    fontFamily: SAVED_FONT_MAP[s.fontFamily] ?? s.fontFamily,
+    fontFamily: fontCss(s.fontFamily),
     fontSize: `${s.fontSize}px`,
     letterSpacing: `${s.letterSpacing}em`,
     wordSpacing: `${s.wordSpacing}em`,
@@ -241,7 +271,7 @@ export function sanitizeSavedSettings(input: unknown): SavedSettings {
   const num = (v: unknown, min: number, max: number, fallback: number) =>
     typeof v === "number" && Number.isFinite(v) ? +clamp(v, min, max).toFixed(3) : fallback;
   return {
-    fontFamily: typeof o.fontFamily === "string" && o.fontFamily.trim() && o.fontFamily.length < 100 ? o.fontFamily.trim() : d.fontFamily,
+    fontFamily: resolveFont(o.fontFamily),
     fontSize: num(o.fontSize, 10, 36, d.fontSize),
     letterSpacing: num(o.letterSpacing, 0, 0.5, d.letterSpacing),
     wordSpacing: num(o.wordSpacing, 0, 0.5, d.wordSpacing),

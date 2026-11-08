@@ -3,8 +3,8 @@ import AppKit
 
 /// Same JSON shape as `SavedSettings` in web/lib/settings.ts (what GET /api/settings returns).
 struct ReaderSettings: Codable, Equatable {
-    /// "system", "serif", "rounded", "monospace", or a font family name such as "Lexend" or "Verdana".
-    var fontFamily = "system"
+    /// One of `fonts` (the same fonts the web quiz and settings offer).
+    var fontFamily = ReaderSettings.defaultFont
     var fontSize: Double = 16
     /// Extra space between letters, as a fraction of the font size (0.05 = 5%).
     var letterSpacing: Double = 0
@@ -23,6 +23,10 @@ struct ReaderSettings: Codable, Equatable {
 
     static let `default` = ReaderSettings()
 
+    /// The only fonts, same as FONTS in web/lib/settings.ts. Anything else saved falls back to `defaultFont`.
+    static let fonts = ["Atkinson Hyperlegible", "Lexend", "Verdana", "OpenDyslexic"]
+    static let defaultFont = "Atkinson Hyperlegible"
+
     /// Background and text colors for each `background` value.
     static let backgrounds: [String: (bg: String, text: String)] = [
         "white": ("#FFFFFF", "#1A1A1A"),
@@ -32,7 +36,7 @@ struct ReaderSettings: Codable, Equatable {
 
     /// A deliberately different look for testing the popup (run with POLARIS_TEST_SETTINGS=1).
     static let testPreset = ReaderSettings(
-        fontFamily: "serif",
+        fontFamily: "Lexend",
         fontSize: 22,
         letterSpacing: 0.08,
         wordSpacing: 0.3,
@@ -43,10 +47,10 @@ struct ReaderSettings: Codable, Equatable {
         readingLevel: "simple"
     )
 
-    init(fontFamily: String = "system", fontSize: Double = 16, letterSpacing: Double = 0, wordSpacing: Double = 0,
+    init(fontFamily: String = ReaderSettings.defaultFont, fontSize: Double = 16, letterSpacing: Double = 0, wordSpacing: Double = 0,
          lineSpacing: Double = 1.4, background: String = "white", voice: String? = nil,
          readingSpeed: Double = 1.0, readingLevel: String = "standard") {
-        self.fontFamily = fontFamily
+        self.fontFamily = Self.fonts.contains(fontFamily) ? fontFamily : Self.defaultFont
         self.fontSize = fontSize
         self.letterSpacing = letterSpacing
         self.wordSpacing = wordSpacing
@@ -61,7 +65,8 @@ struct ReaderSettings: Codable, Equatable {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = ReaderSettings.default
-        fontFamily = try c.decodeIfPresent(String.self, forKey: .fontFamily) ?? d.fontFamily
+        let saved = try c.decodeIfPresent(String.self, forKey: .fontFamily)
+        fontFamily = saved.flatMap { Self.fonts.contains($0) ? $0 : nil } ?? d.fontFamily
         fontSize = try c.decodeIfPresent(Double.self, forKey: .fontSize) ?? d.fontSize
         letterSpacing = try c.decodeIfPresent(Double.self, forKey: .letterSpacing) ?? d.letterSpacing
         wordSpacing = try c.decodeIfPresent(Double.self, forKey: .wordSpacing) ?? d.wordSpacing
@@ -74,18 +79,9 @@ struct ReaderSettings: Codable, Equatable {
 
     var font: NSFont {
         let size = CGFloat(fontSize)
-        switch fontFamily {
-        case "system": return .systemFont(ofSize: size)
-        case "monospace": return .monospacedSystemFont(ofSize: size, weight: .regular)
-        case "serif", "rounded":
-            let base = NSFont.systemFont(ofSize: size)
-            let design: NSFontDescriptor.SystemDesign = fontFamily == "serif" ? .serif : .rounded
-            return base.fontDescriptor.withDesign(design).flatMap { NSFont(descriptor: $0, size: size) } ?? base
-        default:
-            // A family name like "Lexend" (bundled fonts are registered by FontLoader at launch).
-            return NSFontManager.shared.font(withFamily: fontFamily, traits: [], weight: 5, size: size)
-                ?? NSFont(name: fontFamily, size: size) ?? .systemFont(ofSize: size)
-        }
+        // The bundled fonts are registered by FontLoader at launch; Verdana comes with macOS.
+        return NSFontManager.shared.font(withFamily: fontFamily, traits: [], weight: 5, size: size)
+            ?? NSFont(name: fontFamily, size: size) ?? .systemFont(ofSize: size)
     }
 
     /// Height of one line of text in the reading font.

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS reader_settings (
   user_id        UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  font_family    TEXT    NOT NULL DEFAULT 'system',
+  font_family    TEXT    NOT NULL DEFAULT 'Atkinson Hyperlegible',
   font_size      INTEGER NOT NULL DEFAULT 16,
   letter_spacing REAL    NOT NULL DEFAULT 0,
   word_spacing   REAL    NOT NULL DEFAULT 0,

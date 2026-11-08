@@ -130,6 +130,7 @@ export default function Quiz({ isLoggedIn }: { isLoggedIn: boolean }) {
       body: JSON.stringify(settings),
     });
     router.push("/settings");
+    router.refresh(); // re-draw the page header and colors with the new settings
   }
 
   function playPreview(previewUrl: string) {

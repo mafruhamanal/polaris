@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import UserMenu from "@/components/UserMenu";
 import { db } from "@/lib/db";
-import { SAVED_DEFAULTS, savedSettingsToTypographyStyle, type SavedSettings, type BackgroundId } from "@/lib/settings";
+import { SAVED_DEFAULTS, resolveFont, savedSettingsToTypographyStyle, pagePalette, type SavedSettings, type BackgroundId } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Polaris",
@@ -16,6 +16,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await auth();
 
   let settings: SavedSettings = SAVED_DEFAULTS;
+  let hasSavedSettings = false;
   if (session?.user?.email) {
     const rows = await db`
       SELECT rs.font_family, rs.font_size, rs.letter_spacing, rs.word_spacing, rs.line_spacing, rs.background, rs.voice, rs.reading_speed, rs.reading_level
@@ -25,8 +26,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       LIMIT 1
     `;
     if (rows.length > 0) {
+      hasSavedSettings = true;
       settings = {
-        fontFamily: rows[0].font_family,
+        fontFamily: resolveFont(rows[0].font_family),
         fontSize: rows[0].font_size,
         letterSpacing: rows[0].letter_spacing,
         wordSpacing: rows[0].word_spacing,
@@ -40,27 +42,34 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   const typography = savedSettingsToTypographyStyle(settings);
+  // Someone who saved a background gets it across the whole site, like in the Mac popup.
+  // Everyone else keeps the default look.
+  const palette = hasSavedSettings ? pagePalette(settings.background) : null;
 
   return (
-    <html lang="en" style={{ fontSize: `${settings.fontSize}px`, '--ui-line-height': settings.lineSpacing } as React.CSSProperties}>
+    <html
+      lang="en"
+      data-theme={palette?.theme}
+      style={{ fontSize: `${settings.fontSize}px`, '--ui-line-height': settings.lineSpacing, ...palette?.vars } as React.CSSProperties}
+    >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
       </head>
       <body className="min-h-screen bg-space-deep text-star-white" style={typography}>
-        <header className="sticky top-0 z-50 bg-space-deep border-b border-white/10">
+        <header className="sticky top-0 z-50 bg-space-deep border-b border-star-white/10">
           <nav className="max-w-5xl mx-auto px-3 h-28 flex items-center justify-between">
             <Link href="/" className="shrink-0">
               <Logo className="text-4xl" />
             </Link>
             <div className="flex items-center gap-6">
-              <Link href="/quiz" className="px-4 py-2 text-2xl rounded hover:bg-white/10 transition-colors">Quiz</Link>
+              <Link href="/quiz" className="px-4 py-2 text-2xl rounded hover:bg-star-white/10 transition-colors">Quiz</Link>
               {session && (
                 <>
-                  <Link href="/saved" className="px-4 py-2 text-2xl rounded hover:bg-white/10 transition-colors">Saved</Link>
-                  <Link href="/settings" className="px-4 py-2 text-2xl rounded hover:bg-white/10 transition-colors">Settings</Link>
-                  <Link href="/connect" className="px-4 py-2 text-2xl rounded hover:bg-white/10 transition-colors">Connect Mac</Link>
+                  <Link href="/saved" className="px-4 py-2 text-2xl rounded hover:bg-star-white/10 transition-colors">Saved</Link>
+                  <Link href="/settings" className="px-4 py-2 text-2xl rounded hover:bg-star-white/10 transition-colors">Settings</Link>
+                  <Link href="/connect" className="px-4 py-2 text-2xl rounded hover:bg-star-white/10 transition-colors">Connect Mac</Link>
                 </>
               )}
               {session ? (
@@ -69,7 +78,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   email={session.user?.email ?? ""}
                   signOutForm={
                     <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
-                      <button className="w-full text-left px-4 py-2.5 text-base text-star-white rounded-lg hover:bg-white/10 transition-colors">
+                      <button className="w-full text-left px-4 py-2.5 text-base text-star-white rounded-lg hover:bg-star-white/10 transition-colors">
                         Sign out
                       </button>
                     </form>
