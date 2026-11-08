@@ -226,6 +226,8 @@ final class AskPanel: NSView {
         for title in list {
             let chip = FirstClickButton(title: title, target: self, action: #selector(chipTapped(_:)))
             chip.isBordered = false
+            chip.cell?.wraps = true
+            chip.cell?.lineBreakMode = .byWordWrapping
             let styled = NSMutableAttributedString(attributedString: settings.styled(title))
             let whole = NSRange(location: 0, length: styled.length)
             styled.removeAttribute(.paragraphStyle, range: whole)
@@ -294,16 +296,23 @@ final class AskPanel: NSView {
         sendButton.frame = NSRect(x: w - pad - 28, y: top + (fieldHeight - 28) / 2, width: 28, height: 28)
 
         // Chips flow left to right and wrap.
-        var x: CGFloat = 0, lineY: CGFloat = 0
+        var x: CGFloat = 0, lineY: CGFloat = 0, rowBottom: CGFloat = 0
         let maxWidth = w - pad * 2, h = chipHeight
         var frames: [NSRect] = []
         for chip in chips.subviews {
-            let size = NSSize(width: min(chip.fittingSize.width + 20, maxWidth), height: h)
-            if x > 0 && x + size.width > maxWidth { x = 0; lineY += h + 6 }
+            // Long chips take the full width and wrap onto more lines instead of being cut off.
+            var size = NSSize(width: chip.fittingSize.width + 20, height: h)
+            if size.width > maxWidth, let title = (chip as? NSButton)?.attributedTitle {
+                let text = title.boundingRect(with: NSSize(width: maxWidth - 20, height: .greatestFiniteMagnitude),
+                                              options: [.usesLineFragmentOrigin, .usesFontLeading])
+                size = NSSize(width: maxWidth, height: max(h, ceil(text.height) + 10))
+            }
+            if x > 0 && x + size.width > maxWidth { x = 0; lineY = rowBottom + 6 }
             frames.append(NSRect(origin: NSPoint(x: x, y: lineY), size: size))
+            rowBottom = max(rowBottom, lineY + size.height)
             x += size.width + 6
         }
-        let chipsHeight = chips.subviews.isEmpty ? 0 : lineY + h
+        let chipsHeight = chips.subviews.isEmpty ? 0 : rowBottom
         top -= chipsHeight == 0 ? 0 : 8 + chipsHeight
         chips.frame = NSRect(x: pad, y: top, width: maxWidth, height: chipsHeight)
         // Flip so the first line is on top.

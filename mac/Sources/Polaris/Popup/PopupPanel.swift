@@ -15,7 +15,11 @@ final class Popup {
     private let circleSpacing: CGFloat = 14
     private var menuSize: NSSize { NSSize(width: circleSize * 3 + circleSpacing * 2, height: circleSize) }
     private let contentSize = NSSize(width: 420, height: 320)
-    private let askSize = NSSize(width: 440, height: 400)
+    /// Ask grows with the reading font so big text still has room (place() keeps it on screen).
+    private var askSize: NSSize {
+        let scale = CGFloat(max(1, SettingsStore.shared.settings.fontSize / 16))
+        return NSSize(width: min(440 * scale, 640), height: min(400 * scale, 680))
+    }
     private let barHeight: CGFloat = 32
 
     private let panel: FloatingPanel
@@ -144,10 +148,11 @@ final class Popup {
     /// The Ask view: question box focused so the user can type right away.
     func showAsk(context: SelectionContext?) {
         stopReading()
-        layoutContent(back: true, readerControls: false, size: askSize)
+        let size = askSize
+        layoutContent(back: true, readerControls: false, size: size)
         scroll.isHidden = true
         ask.isHidden = false
-        ask.frame = NSRect(origin: .zero, size: askSize)
+        ask.frame = NSRect(origin: .zero, size: panel.frame.size)
         ask.reset(context: context)
         panel.orderFrontRegardless()
         panel.makeKey()
@@ -246,7 +251,7 @@ final class Popup {
         let p = anchor
         let screen = NSScreen.screens.first { NSMouseInRect(p, $0.frame, false) } ?? NSScreen.main
         let vf = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
-        let w = size.width, h = size.height
+        let w = min(size.width, vf.width - 20), h = min(size.height, vf.height - 20)
 
         let gap: CGFloat = hugCursor ? 6 : 18
         var x = p.x + gap
