@@ -25,14 +25,14 @@ export default function UserMenu({ email, signOutForm }: Props) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-12 h-12 rounded-full bg-ink text-peach font-bold text-lg flex items-center justify-center hover:opacity-80 transition-opacity"
+        className="w-24 h-24 rounded-full bg-ink text-peach font-bold text-4xl flex items-center justify-center hover:opacity-80 transition-opacity"
         aria-label="User menu"
       >
         {email[0].toUpperCase()}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-14 bg-white rounded-2xl shadow-lg border border-ink/10 py-4 z-50" style={{ width: "32rem" }}>
+        <div className="absolute right-0 top-28 bg-white rounded-2xl shadow-lg border border-ink/10 py-4 z-50" style={{ width: "32rem" }}>
           <p className="px-8 py-4 text-2xl text-ink-soft truncate">{email}</p>
           <hr className="border-ink/10 my-2" />
           {signOutForm}
