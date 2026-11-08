@@ -1,3 +1,4 @@
+import type React from "react";
 import { redirect } from "next/navigation";
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
@@ -45,11 +46,14 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
   } : SAVED_DEFAULTS;
 
   const textStyle = savedSettingsToStyle(settings);
-  const readingStyle = {
+  const readingStyle: React.CSSProperties = {
     fontFamily: textStyle.fontFamily,
     fontSize: textStyle.fontSize,
     letterSpacing: textStyle.letterSpacing,
+    wordSpacing: textStyle.wordSpacing,
     lineHeight: textStyle.lineHeight,
+    backgroundColor: textStyle.backgroundColor,
+    color: textStyle.color,
   };
 
   return (
