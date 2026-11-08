@@ -65,6 +65,16 @@ final class SpeechReader: NSObject, AVSpeechSynthesizerDelegate, AVAudioPlayerDe
         !id.contains(".") && id.count >= 10 && id.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber) }
     }
 
+    /// The word reading is on (or paused on).
+    var currentWord: NSRange? { index < words.count ? words[index] : nil }
+
+    /// Moves to the word at character `location` (e.g. the user clicked it); keeps playing if it was.
+    func jump(to location: Int, _ current: String) {
+        if current as NSString != text { load(current) }
+        guard let i = words.firstIndex(where: { NSMaxRange($0) > location }) else { return }
+        step(i - index, current)
+    }
+
     func togglePlay(_ current: String) {
         if isPlaying { pause() } else { play(current) }
     }

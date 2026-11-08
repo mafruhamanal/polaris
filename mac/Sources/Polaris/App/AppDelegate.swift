@@ -18,6 +18,7 @@ import ApplicationServices
     func applicationDidFinishLaunching(_ notification: Notification) {
         popup.onAction = { [weak self] action in self?.run(action) }
         popup.onBack = { [weak self] in self?.goBack() }
+        popup.onClose = { [weak self] in self?.dismiss() }
         popup.ask.onAsk = { [weak self] question in self?.ask(question) }
         popup.ask.onSimplify = { [weak self] in self?.simplify() }
         popup.ask.onTurnsChanged = { [weak self] in self?.saveConversation() }
@@ -51,7 +52,7 @@ import ApplicationServices
             if e.keyCode == 53 { Task { @MainActor in self?.dismiss() } }
         }) { monitors.append(m) }
         // Keys while the popup is focused: Esc closes, Space plays/pauses, ← → move by one word,
-        // Delete goes back. While typing a question, only Esc is ours.
+        // Delete goes back, 1–4 pick from the menu, W opens Word help. While typing, only Esc is ours.
         if let m = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] e in
             guard let self else { return e }
             if self.popup.isTyping && e.keyCode != 53 { return e }
@@ -61,6 +62,8 @@ import ApplicationServices
             case 49: self.popup.togglePlay()
             case 123: self.popup.step(-1)
             case 124: self.popup.step(1)
+            case 18...21 where self.popup.isShowingMenu: self.popup.pick(Int(e.keyCode) - 17)   // keys 1–4
+            case 13 where self.popup.isReadingAloud: self.popup.showWordHelp()                  // W
             default: return e
             }
             return nil

@@ -162,6 +162,14 @@ enum PolarisAPI {
         return try JSONDecoder().decode(Response.self, from: data).edits
     }
 
+    /// A short meaning of `word` as it's used in `sentence` (POST /api/define), for Word help.
+    static func define(_ word: String, sentence: String) async throws -> String {
+        struct Body: Encodable { let word: String; let sentence: String }
+        struct Response: Decodable { let meaning: String }
+        let data = try await send("api/define", method: "POST", body: try JSONEncoder().encode(Body(word: word, sentence: sentence)))
+        return try JSONDecoder().decode(Response.self, from: data).meaning
+    }
+
     static func settings() async throws -> ReaderSettings {
         try JSONDecoder().decode(ReaderSettings.self, from: try await send("api/settings"))
     }
