@@ -10,7 +10,7 @@ export default async function SettingsPage() {
   if (!userId) redirect("/sign-in");
 
   const rows = await db`
-    SELECT font_family, font_size, letter_spacing, line_spacing, background, voice, reading_speed, reading_level
+    SELECT font_family, font_size, letter_spacing, word_spacing, line_spacing, background, voice, reading_speed, reading_level
     FROM reader_settings WHERE user_id = ${userId}
   `;
 
@@ -19,6 +19,7 @@ export default async function SettingsPage() {
     fontFamily: rows[0].font_family,
     fontSize: rows[0].font_size,
     letterSpacing: rows[0].letter_spacing,
+    wordSpacing: rows[0].word_spacing,
     lineSpacing: rows[0].line_spacing,
     background: rows[0].background,
     voice: rows[0].voice,

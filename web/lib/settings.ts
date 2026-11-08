@@ -223,6 +223,7 @@ export function savedSettingsToStyle(s: SavedSettings): React.CSSProperties {
     fontFamily: SAVED_FONT_MAP[s.fontFamily] ?? s.fontFamily,
     fontSize: `${s.fontSize}px`,
     letterSpacing: `${s.letterSpacing}em`,
+    wordSpacing: `${s.wordSpacing}em`,
     lineHeight: s.lineSpacing,
     backgroundColor: bg.bg,
     color: bg.text,

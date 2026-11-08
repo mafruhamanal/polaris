@@ -17,7 +17,7 @@ export default async function SavedPage() {
       ORDER BY created_at DESC
     `,
     db`
-      SELECT font_family, font_size, letter_spacing, line_spacing, background, voice, reading_speed, reading_level
+      SELECT font_family, font_size, letter_spacing, word_spacing, line_spacing, background, voice, reading_speed, reading_level
       FROM reader_settings WHERE user_id = ${userId} LIMIT 1
     `,
   ]);
@@ -26,6 +26,7 @@ export default async function SavedPage() {
     fontFamily: settingsRows[0].font_family,
     fontSize: settingsRows[0].font_size,
     letterSpacing: settingsRows[0].letter_spacing,
+    wordSpacing: settingsRows[0].word_spacing,
     lineSpacing: settingsRows[0].line_spacing,
     background: settingsRows[0].background as BackgroundId,
     voice: settingsRows[0].voice,

@@ -7,7 +7,7 @@ export async function GET() {
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const rows = await db`
-    SELECT font_family, font_size, letter_spacing, line_spacing, background, voice, reading_speed, reading_level
+    SELECT font_family, font_size, letter_spacing, word_spacing, line_spacing, background, voice, reading_speed, reading_level
     FROM reader_settings WHERE user_id = ${userId}
   `;
 
@@ -18,6 +18,7 @@ export async function GET() {
     fontFamily: r.font_family,
     fontSize: r.font_size,
     letterSpacing: r.letter_spacing,
+    wordSpacing: r.word_spacing,
     lineSpacing: r.line_spacing,
     background: r.background,
     voice: r.voice,
@@ -34,12 +35,13 @@ export async function PUT(req: Request) {
   const body = sanitizeSavedSettings(await req.json());
 
   const rows = await db`
-    INSERT INTO reader_settings (user_id, font_family, font_size, letter_spacing, line_spacing, background, voice, reading_speed, reading_level, updated_at)
-    VALUES (${userId}, ${body.fontFamily}, ${body.fontSize}, ${body.letterSpacing}, ${body.lineSpacing}, ${body.background}, ${body.voice}, ${body.readingSpeed}, ${body.readingLevel}, now())
+    INSERT INTO reader_settings (user_id, font_family, font_size, letter_spacing, word_spacing, line_spacing, background, voice, reading_speed, reading_level, updated_at)
+    VALUES (${userId}, ${body.fontFamily}, ${body.fontSize}, ${body.letterSpacing}, ${body.wordSpacing}, ${body.lineSpacing}, ${body.background}, ${body.voice}, ${body.readingSpeed}, ${body.readingLevel}, now())
     ON CONFLICT (user_id) DO UPDATE SET
       font_family = EXCLUDED.font_family,
       font_size = EXCLUDED.font_size,
       letter_spacing = EXCLUDED.letter_spacing,
+      word_spacing = EXCLUDED.word_spacing,
       line_spacing = EXCLUDED.line_spacing,
       background = EXCLUDED.background,
       voice = EXCLUDED.voice,
@@ -54,6 +56,7 @@ export async function PUT(req: Request) {
     fontFamily: r.font_family,
     fontSize: r.font_size,
     letterSpacing: r.letter_spacing,
+    wordSpacing: r.word_spacing,
     lineSpacing: r.line_spacing,
     background: r.background,
     voice: r.voice,
