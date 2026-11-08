@@ -3,6 +3,7 @@ import "./globals.css";
 import { auth, signOut } from "@/lib/auth";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import UserMenu from "@/components/UserMenu";
 
 export const metadata: Metadata = {
   title: "Polaris",
@@ -35,16 +36,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </>
               )}
             </div>
-            <div className="ml-auto flex items-center gap-6 text-2xl whitespace-nowrap">
+            <div className="ml-auto flex items-center">
               {session ? (
-                <>
-                  <span className="text-ink-soft hidden sm:block truncate max-w-[240px]">{session.user?.email}</span>
-                  <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
-                    <button className="px-6 py-3 rounded-lg font-medium text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors">Sign out</button>
-                  </form>
-                </>
+                <UserMenu
+                  email={session.user?.email ?? ""}
+                  signOutForm={
+                    <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
+                      <button className="w-full text-left px-4 py-2 text-sm font-medium text-ink hover:bg-ink/5 transition-colors">
+                        Sign out
+                      </button>
+                    </form>
+                  }
+                />
               ) : (
-                <Link href="/sign-in" className="bg-ember text-white px-8 py-3 rounded-full font-medium hover:opacity-90 transition-opacity">Sign in</Link>
+                <Link href="/sign-in" className="bg-ember text-white px-8 py-3 rounded-full text-2xl font-medium hover:opacity-90 transition-opacity">Sign in</Link>
               )}
             </div>
           </nav>
