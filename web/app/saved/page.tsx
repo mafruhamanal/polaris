@@ -46,7 +46,7 @@ export default async function SavedPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold">Saved responses</h1>
-        <span className="text-base text-star-dim">{rows.length} item{rows.length !== 1 ? "s" : ""}</span>
+        <span className="text-2xl text-star-white font-medium">{rows.length} item{rows.length !== 1 ? "s" : ""}</span>
       </div>
 
       {rows.length === 0 ? (
