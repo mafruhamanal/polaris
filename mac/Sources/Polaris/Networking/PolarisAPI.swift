@@ -4,8 +4,6 @@ import Foundation
 struct AskResult: Decodable {
     let inScope: Bool
     let answer: String
-    let fromText: Bool
-    let evidence: [String]
     let suggestions: [String]
 }
 
