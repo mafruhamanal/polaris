@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@theme {
+  --color-peach: #ffd9c2;
+  --color-peach-light: #fff3eb;
+  --color-ink: #1f2440;
+  --color-ink-soft: #4a4e66;
+  --color-ember: #d9572b;
+  --color-logo: var(--color-ink);
+}
