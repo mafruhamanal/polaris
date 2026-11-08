@@ -1,7 +1,8 @@
 // POST /api/speak — text-to-speech via ElevenLabs, returning audio plus word timestamps.
 // Body: { text, voiceId? } (voiceId defaults to the user's saved voice).
-// → { audio: base64 MP3, words: [{ offset, time }] } where `offset` is the word's start in
-//   `text` (UTF-16 units, the same as Swift's NSString ranges) and `time` is seconds into the audio.
+// → { audio: base64 MP3, charTimes: number[] } where charTimes[i] is the second of the audio at which
+//   the character at UTF-16 position i of `text` (the same units as Swift's NSString) is spoken.
+//   Per character, so the Mac can look up any word it likes however it splits the text into words.
 // 501 when ELEVENLABS_API_KEY isn't set, so the Mac falls back to its own voices.
 import { getUserId } from "@/lib/getUserId";
 import { db } from "@/lib/db";
@@ -53,28 +54,45 @@ export async function POST(req: Request) {
   }
 
   const data: { audio_base64: string; alignment?: Alignment } = await res.json();
-  return Response.json({ audio: data.audio_base64, words: wordTimes(text, data.alignment) });
+  return Response.json({ audio: data.audio_base64, charTimes: charTimes(text, data.alignment) });
 }
 
-/** When each word of `text` starts in the audio, from ElevenLabs' per-character timings. */
-function wordTimes(text: string, alignment?: Alignment): { offset: number; time: number }[] {
+/**
+ * When each character of `text` is spoken, from ElevenLabs' per-character timings.
+ * If ElevenLabs returns slightly different text (it can change whitespace or odd characters),
+ * letters are matched in order, ignoring whitespace, so a difference doesn't shift every word after it.
+ */
+function charTimes(text: string, alignment?: Alignment): number[] {
   const chars = alignment?.characters ?? [];
   const starts = alignment?.character_start_times_seconds ?? [];
+  if (!text.length || !chars.length) return [];
 
   // Start time for each UTF-16 position in the aligned text.
   const timeAt: number[] = [];
   chars.forEach((c, i) => {
     for (let k = 0; k < c.length; k++) timeAt.push(starts[i] ?? 0);
   });
-  const aligned = chars.join("") === text;
-  const total = starts.length ? starts[starts.length - 1] : 0;
+  const aligned = chars.join("");
 
-  const words: { offset: number; time: number }[] = [];
-  for (const m of text.matchAll(/\S+/g)) {
-    const offset = m.index ?? 0;
-    // If ElevenLabs changed the text, estimate from the word's position instead.
-    const time = aligned ? timeAt[offset] ?? 0 : (offset / Math.max(1, text.length)) * total;
-    words.push({ offset, time });
+  const round = (t: number) => Math.round(t * 1000) / 1000;
+  if (aligned === text) return timeAt.map(round);
+
+  // Positions of the non-whitespace characters in each text.
+  const solid = (s: string) => [...s.matchAll(/\S/g)].map((m) => m.index ?? 0);
+  const inText = solid(text);
+  const inAligned = solid(aligned);
+  if (!inText.length || !inAligned.length) return [];
+
+  const out: number[] = new Array(text.length).fill(0);
+  let last = timeAt[inAligned[inAligned.length - 1]] ?? 0;
+  // Fill from the end so whitespace takes the time of the character after it.
+  for (let k = inText.length - 1; k >= 0; k--) {
+    // Same count of letters: match one to one. Otherwise spread them evenly over the audio.
+    const j = inText.length === inAligned.length ? k : Math.floor((k * inAligned.length) / inText.length);
+    const t = timeAt[inAligned[j]] ?? last;
+    const from = k === 0 ? 0 : inText[k - 1] + 1;
+    for (let pos = inText[k]; pos >= from; pos--) out[pos] = round(t);
+    last = t;
   }
-  return words;
+  return out;
 }

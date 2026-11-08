@@ -17,16 +17,18 @@ struct WriteResult: Decodable {
     let catalog: String
 }
 
-/// ElevenLabs audio and when each word starts (POST /api/speak).
+/// ElevenLabs audio and when each character is spoken (POST /api/speak).
 struct Speech: Decodable {
-    struct Word: Decodable {
-        /// Where the word starts in the text (UTF-16, like NSString).
-        let offset: Int
-        /// Seconds into the audio.
-        let time: Double
-    }
     let audio: String
-    let words: [Word]
+    /// Seconds into the audio at which the character at each UTF-16 position of the text is spoken.
+    let charTimes: [Double]
+}
+
+/// Say `spoken` instead of the text in [start, end) (UTF-16, like NSString); "" skips it.
+struct SpeechEdit: Decodable {
+    let start: Int
+    let end: Int
+    let spoken: String
 }
 
 @MainActor
@@ -122,6 +124,14 @@ enum PolarisAPI {
         struct Body: Encodable { let text: String; let voiceId: String }
         let data = try await send("api/speak", method: "POST", body: try JSONEncoder().encode(Body(text: text, voiceId: voiceId)))
         return try JSONDecoder().decode(Speech.self, from: data)
+    }
+
+    /// How to say `text` aloud (POST /api/speech-prep): URLs and citations dropped, abbreviations spelled out.
+    static func speechEdits(_ text: String) async throws -> [SpeechEdit] {
+        struct Body: Encodable { let text: String }
+        struct Response: Decodable { let edits: [SpeechEdit] }
+        let data = try await send("api/speech-prep", method: "POST", body: try JSONEncoder().encode(Body(text: text)))
+        return try JSONDecoder().decode(Response.self, from: data).edits
     }
 
     static func settings() async throws -> ReaderSettings {
