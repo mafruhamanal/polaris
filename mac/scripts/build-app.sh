@@ -55,7 +55,9 @@ $env_entries  </dict>
 PLIST
 
 # Free local ("ad-hoc") signature: fine on this Mac; sharing needs an Apple Developer ID.
-codesign --force --sign - "$APP"
+# The designated requirement names only the bundle id, so macOS keeps the Accessibility
+# permission across rebuilds instead of treating each build as a new app.
+codesign --force --sign - -r='designated => identifier "app.polaris.mac"' "$APP"
 # Tell macOS this app handles polaris:// links.
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP"
 

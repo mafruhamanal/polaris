@@ -81,6 +81,12 @@ import ApplicationServices
 
         currentTask = Task { [weak self] in
             guard let self else { return }
+            guard AXIsProcessTrusted() else {
+                self.popup.showText("Polaris needs Accessibility permission to read your selection. "
+                    + "Turn on Polaris in System Settings → Privacy & Security → Accessibility, then quit and reopen Polaris.",
+                    near: location)
+                return
+            }
             guard var selection = await SelectionReader.read(),
                   !selection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 self.popup.showText("No selection found. Highlight some text first, then circle.", near: location)
