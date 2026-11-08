@@ -27,8 +27,8 @@ export default function QuestionCard({ prompt, optionA, optionB, soFar, onPick }
               className="text-left rounded-2xl border-2 border-space-light hover:border-nebula-purple focus:border-nebula-teal focus:outline-none transition-all group bg-space-mid"
             >
               <div
-                style={{ ...style, minHeight: "16rem" }}
-                className="rounded-xl p-8 shadow-sm group-hover:shadow transition-shadow"
+                style={{ ...style, minHeight: "32rem" }}
+                className="rounded-xl p-16 shadow-sm group-hover:shadow transition-shadow"
               >
                 <p>{SAMPLE_TEXT}</p>
               </div>
